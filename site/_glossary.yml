@@ -1,0 +1,95 @@
+# Site glossary. Each entry: id (anchor on glossary.html), term (heading), def (tooltip and glossary text),
+# aliases (phrases linked on first mention per page; matching ignores case and surrounding punctuation).
+terms:
+  - id: alert
+    term: ALERT gauge network
+    def: "Automated Local Evaluation in Real Time: flood-warning rain gauges operated by the City of Flagstaff and Coconino County. Each gauge is a 1-mm tipping bucket that reports every tip by radio."
+    aliases: [ALERT]
+  - id: tipping-bucket
+    term: Tipping bucket
+    def: "A rain gauge that funnels rain into a small two-sided bucket that tips each time it fills (1 mm here). Tips are counted and time-stamped; very intense rain can be undercounted and snow is not measured until it melts."
+    aliases: [tipping bucket, tipping buckets]
+  - id: network-median
+    term: Network median and percentiles
+    def: "Statistics across all gauges in the network. The median is the middle gauge value; the 10th–90th percentile range spans the middle 80% of gauges, so a single gauge does not stand in for the city."
+    aliases: [network median, 10th–90th percentile]
+  - id: network-mean
+    term: Network-mean rain
+    def: "The average of all gauges' hourly rain. Used to time an event: the 'central 80%' is the period between 10% and 90% of the network-mean total."
+    aliases: [network-mean, network mean]
+  - id: event-window
+    term: Event window
+    def: "The UTC period chosen to contain an event's rain. Gauge totals are summed over it; airport and SNOTEL values use the local (MST) calendar days it covers."
+    aliases: [event window]
+  - id: provisional
+    term: Provisional and final pages
+    def: "An event page is provisional until ERA5 covers the whole event window (about 5 days after it ends); it is then rebuilt with ERA5 maps and the atmospheric summary and marked final."
+    aliases: []
+  - id: snotel
+    term: SNOTEL
+    def: "Snow Telemetry: automated USDA NRCS mountain stations measuring snow water equivalent, snow depth, accumulated precipitation and air temperature. Sites used here: Fort Valley, Snowslide Canyon and Fry."
+    aliases: [SNOTEL]
+  - id: swe
+    term: Snow water equivalent (SWE)
+    def: "The depth of water that would result if the snowpack melted, in inches."
+    aliases: [snow water equivalent, SWE]
+  - id: water-year
+    term: Water year
+    def: "October 1 to September 30, named for the calendar year in which it ends (water year 2027 began October 1, 2026)."
+    aliases: [water year, water-year]
+  - id: normals
+    term: 1991–2020 normals and medians
+    def: "NOAA's 30-year average for each calendar day at the Flagstaff airport (1991–2020 Climate Normals). SNOTEL comparisons use the NRCS 1991–2020 median for the date."
+    aliases: [1991–2020 normal, 1991–2020 normals]
+  - id: mst
+    term: MST and UTC
+    def: "Mountain Standard Time is UTC−7. Arizona does not observe daylight saving time, so Flagstaff is on MST all year. ERA5 and maps use UTC (Coordinated Universal Time)."
+    aliases: [MST, UTC]
+  - id: era5
+    term: ERA5
+    def: "The fifth-generation ECMWF global atmospheric reanalysis from the Copernicus Climate Change Service: a consistent reconstruction of past weather from 1940 on, combining observations with a forecast model. Used here at 0.25° and 6-hourly; it becomes available about 5 days after real time."
+    aliases: [ERA5]
+  - id: ivt
+    term: Integrated vapour transport (IVT)
+    def: "The horizontal flux of water vapour summed through the depth of the atmosphere, in kg m⁻¹ s⁻¹: how much moisture the wind carries across each metre of a line on the ground, per second."
+    aliases: [IVT, integrated vapour transport]
+  - id: atmospheric-river
+    term: Atmospheric river
+    def: "A long, narrow corridor of strong water-vapour transport. On this site, 'atmospheric-river strength' means IVT ≥ 250 kg m⁻¹ s⁻¹, a threshold widely used for western North America (e.g. Rutz et al. 2014)."
+    aliases: [atmospheric river, atmospheric rivers, atmospheric-river]
+  - id: tcwv
+    term: Total column water vapour
+    def: "The mass of water vapour above a unit area from the ground to the top of the atmosphere, in mm (kg m⁻²); also called precipitable water."
+    aliases: [total column water vapour]
+  - id: z500
+    term: 500-hPa height
+    def: "The altitude of the 500-hPa pressure surface (hPa = hectopascal = millibar), about 5.5–6 km above sea level. Low heights mark troughs and lows aloft, and the wind at this level blows nearly along the height contours."
+    aliases: [500-hPa height, 500-hPa heights, 500-hPa]
+  - id: trough-axis
+    term: Trough axis
+    def: "The line through the lowest heights of an elongated region of low 500-hPa height. Here: the longitude of the lowest 500-hPa height along Flagstaff's latitude between 135°W and Flagstaff."
+    aliases: [trough axis]
+  - id: closed-low
+    term: Closed low
+    def: "A low aloft enclosed by at least one height contour. Here: a local minimum of 500-hPa height over a 5° neighbourhood within 1,500 km of Flagstaff."
+    aliases: [closed 500-hPa low, closed low]
+  - id: jet
+    term: 250-hPa wind and the jet stream
+    def: "Wind speed at the 250-hPa level, about 10–11 km above sea level, near the level of the jet stream (a narrow band of strong westerly wind). Maps contour 40, 55 and 70 m s⁻¹."
+    aliases: [250-hPa wind, 250-hPa, jet stream]
+  - id: tropical-cyclone
+    term: Tropical cyclone
+    def: "A warm-core low-pressure system that forms over tropical oceans. NHC categories: tropical depression (sustained wind < 34 kt), tropical storm (34–63 kt), hurricane (≥ 64 kt)."
+    aliases: [tropical cyclone, tropical cyclones, tropical storm, hurricane]
+  - id: remnant
+    term: Remnant disturbance / remnant low
+    def: "What is left of a tropical cyclone after it loses its tropical structure; NHC continues to track it as a disturbance (DB) or low (LO). Its moisture can still reach Arizona."
+    aliases: [remnant disturbance, remnant low]
+  - id: best-track
+    term: NHC best track
+    def: "The National Hurricane Center's record of each storm's position and intensity every 6 hours. This site uses the operational files; the final best track is released after the season and may differ slightly."
+    aliases: [best track, best-track, NHC best track]
+  - id: shaded-relief
+    term: Shaded relief, 3DEP and NHD
+    def: "Gauge maps show terrain as shaded relief computed from the USGS 3D Elevation Program (3DEP) digital elevation model, with 200-m contours, streams from the USGS National Hydrography Dataset (NHD) and highways from Census TIGER."
+    aliases: [shaded relief, USGS 3DEP, USGS NHD]

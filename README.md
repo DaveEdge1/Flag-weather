@@ -15,6 +15,7 @@ flagweather/          Python package
   figures/            event maps, gauge maps and time series
 scripts/              make_event_page.py
 site/                 Quarto website (rendered by GitHub Actions to GitHub Pages)
+  _glossary.yml       glossary terms; glossary.lua links the first mention of each term on every page
 data/                 download cache (git-ignored); data/derived/ holds small committed tables
 ```
 

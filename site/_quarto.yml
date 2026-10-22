@@ -20,11 +20,17 @@ website:
         text: Network
       - href: methods.qmd
         text: Methods
+      - href: glossary.qmd
+        text: Glossary
   page-footer:
     center: "Data: City of Flagstaff ALERT network · NRCS SNOTEL · NWS/RCC-ACIS · ERA5 (Copernicus) · NHC"
 
+filters:
+  - glossary.lua
+
 format:
   html:
+    include-after-body: _glossary-tooltips.html
     theme:
       light: cosmo
       dark: darkly

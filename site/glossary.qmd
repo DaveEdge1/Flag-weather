@@ -1,0 +1,17 @@
+---
+title: "Glossary"
+toc: true
+toc-depth: 2
+---
+
+Terms used on this site. On other pages, the first mention of each term is underlined with dots: hover for the definition, or click to come here.
+
+```{python}
+#| output: asis
+import yaml
+
+with open('_glossary.yml', encoding='utf-8') as f:
+    entries = yaml.safe_load(f)['terms']
+for e in sorted(entries, key=lambda e: e['term'].lower()):
+    print(f"## {e['term']} {{#{e['id']}}}\n\n{e['def']}\n")
+```

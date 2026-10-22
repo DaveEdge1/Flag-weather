@@ -1,0 +1,17 @@
+<style>
+  a.gloss { text-decoration: underline dotted; text-underline-offset: 3px; color: inherit; }
+  a.gloss:hover { text-decoration-style: solid; }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var els = document.querySelectorAll('a.gloss');
+    if (window.tippy) {
+      window.tippy(els, {
+        content: function (el) { return el.getAttribute('data-def'); },
+        theme: 'quarto', maxWidth: 380, placement: 'top', delay: [150, 0],
+      });
+    } else {
+      els.forEach(function (el) { el.title = el.getAttribute('data-def'); });
+    }
+  });
+</script>

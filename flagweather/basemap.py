@@ -25,6 +25,8 @@ DEM_URL = 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/
 NHD_URL = 'https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/4/query'
 TIGER_URL = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/{}/query'
 # (label, approx. lat, lon, search radius deg, label offset pts, alignment); marker at the DEM maximum near the point
+# Route labels placed at a chosen latitude (others go at the midpoint of the route's longest piece)
+ROUTE_LABEL_LAT = {'US 89': 35.3, 'US 180': 35.3}
 PEAKS = [('Humphreys Peak', 35.346, -111.678, 0.03, (-6, 12), 'right'),
          ('Mount Elden', 35.242, -111.597, 0.03, (5, -4), 'left')]
 
@@ -101,8 +103,8 @@ def draw(ax, extent=None):
             if w < x < e and s < y < n:
                 ax.annotate(name, (x, y), fontsize=6.5, color='#1c5cab', style='italic', zorder=2,
                             xytext=(3, -8), textcoords='offset points')
-    labelled = set()
-    for f in sorted(roads['features'], key=lambda f: f['properties'].get('RTTYP') != 'I'):
+    route_pts = {}
+    for f in roads['features']:
         lab = _route(f['properties'])
         g = f['geometry']
         parts = g['coordinates'] if g['type'] == 'MultiLineString' else [g['coordinates']]
@@ -111,13 +113,20 @@ def draw(ax, extent=None):
             x, y = zip(*p)
             ax.plot(x, y, color='#3a3936' if inter else '#6f6d68', lw=1.8 if inter else 1.1, alpha=0.85,
                     zorder=1.5, solid_capstyle='round')
-        if lab not in labelled and parts:
-            p = max(parts, key=len)
+        route_pts.setdefault(lab, []).append(max(parts, key=len))
+    for lab, parts in route_pts.items():
+        inside = [[pt for pt in p if w < pt[0] < e and s < pt[1] < n] for p in parts]
+        inside = [p for p in inside if p]
+        if not inside:
+            continue
+        if lab in ROUTE_LABEL_LAT:   # place at the vertex closest to the chosen latitude
+            x, y = min((pt for p in inside for pt in p), key=lambda pt: abs(pt[1] - ROUTE_LABEL_LAT[lab]))
+        else:                        # midpoint of the longest piece inside the map
+            p = max(inside, key=len)
             x, y = p[len(p) // 2]
-            if w < x < e and s < y < n:
-                ax.annotate(lab, (x, y), fontsize=7, color='#0b0b0b', ha='center', va='center', zorder=2.5,
-                            bbox=dict(boxstyle='round,pad=0.2', fc='#fcfcfb', ec='#3a3936', lw=0.6))
-                labelled.add(lab)
+        if lab:
+            ax.annotate(lab, (x, y), fontsize=7, color='#0b0b0b', ha='center', va='center', zorder=2.5,
+                        bbox=dict(boxstyle='round,pad=0.2', fc='#fcfcfb', ec='#3a3936', lw=0.6))
     for label, la, lo, r, off, ha in PEAKS:
         m = (np.abs(lats[:, None] - la) <= r) & (np.abs(lons[None, :] - lo) <= r)
         i = np.unravel_index(np.argmax(np.where(m, dem, -np.inf)), dem.shape)
