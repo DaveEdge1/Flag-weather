@@ -60,5 +60,22 @@ def load(start, end):
     })
 
 
+def latest_cached():
+    files = sorted(glob.glob(str(DIR / 'sl_*.nc')))
+    if not files:
+        return None
+    return max(pd.Timestamp(xr.open_dataset(f).valid_time.values.max()) for f in files)
+
+
+def covers(start, end):
+    """True if cached ERA5 spans [start, end] (6-hourly)."""
+    files = sorted(glob.glob(str(DIR / 'sl_*.nc')))
+    if not files:
+        return False
+    t = pd.DatetimeIndex(np.concatenate([xr.open_dataset(f).valid_time.values for f in files]))
+    need = pd.date_range(pd.Timestamp(start).floor('6h'), pd.Timestamp(end).ceil('6h'), freq='6h')
+    return need.isin(t).all()
+
+
 def land_sea_mask():
     return xr.open_dataset(DIR / 'lsm.nc').lsm.isel(valid_time=0)

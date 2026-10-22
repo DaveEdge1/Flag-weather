@@ -7,4 +7,3 @@ listing:
   fields: [date, title, description]
 ---
 
-Event pages for autumn 2026 are in preparation.

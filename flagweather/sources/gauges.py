@@ -4,24 +4,37 @@ The tabular API returns one record per 1-mm bucket tip as a cumulative accumulat
 (inches) that occasionally resets; increments are recovered by differencing.
 """
 import json
+import time
 import urllib.request
 
 import pandas as pd
 
+from ..config import EXCLUDE_GAUGES
+
 API = 'https://rain.flagstaffaz.gov/api'
+
+
+def _retry(fn, tries=4):
+    for i in range(tries):
+        try:
+            return fn()
+        except Exception:
+            if i == tries - 1:
+                raise
+            time.sleep(5 * (i + 1))
 
 
 def _get(path):
     req = urllib.request.Request(API + path, headers={'User-Agent': 'Flag-weather', 'Accept': 'application/json'})
-    return json.loads(urllib.request.urlopen(req, timeout=120).read().decode())
+    return _retry(lambda: json.loads(urllib.request.urlopen(req, timeout=120).read().decode()))
 
 
 def network():
-    """All rain gauges: id, site, owner, lat/lon and latest rolling totals (in)."""
+    """Flagstaff-area rain gauges: id, site, owner, lat/lon and latest rolling totals (in)."""
     d = _get('/precip.json')['data']
     rows = [dict(id=k, site=v['site'], owner=v['owner'], lat=v['latitude'], lon=v['longitude'],
                  latest=v['latest'], **{f'last_{p}': v['depths'].get(p) for p in ['P1D', 'P7D', 'P30D']})
-            for k, v in d.items()]
+            for k, v in d.items() if k not in EXCLUDE_GAUGES]
     return pd.DataFrame(rows).set_index('id')
 
 

@@ -16,16 +16,58 @@ def point_series(ds):
     return df
 
 
-def network_timeseries(hourly, df, title=None):
-    """Hourly network rain (median and 10-90th percentile across gauges) above ERA5 IVT, 250-hPa wind, 500-hPa height."""
+def gauge_map(net, values, title, snotel_sites=None, snotel_values=None, unit='in'):
+    """Gauge locations with circle area proportional to value; SNOTEL triangles; airport square."""
+    fig, ax = plt.subplots(figsize=(9, 7.5), facecolor=SURF)
+    v = values.reindex(net.index)
+    scale = 600 / max(float(v.max()), 0.01)
+    ax.scatter(net.lon, net.lat, s=v.fillna(0) * scale, color=BLUE, alpha=0.55, edgecolor=SURF, lw=1)
+    for gid, r in net.iterrows():
+        if pd.notna(v[gid]):
+            ax.annotate(f'{v[gid]:.2f}', (r.lon, r.lat), fontsize=7, color=INK, ha='center', va='center')
+    if snotel_sites is not None:
+        ax.scatter(snotel_sites.lon, snotel_sites.lat, marker='^', s=90, color=ORANGE, edgecolor=INK, lw=0.6, zorder=3)
+        for t, r in snotel_sites.iterrows():
+            lab = r['name'] if snotel_values is None or pd.isna(snotel_values.get(r['name'])) \
+                else f"{r['name']} {snotel_values[r['name']]:.1f}"
+            ax.annotate(lab, (r.lon, r.lat), xytext=(-7, 4), textcoords='offset points', fontsize=8.5, color=INK,
+                        ha='right')
+    ax.scatter([-111.666], [35.144], marker='s', s=60, color=INK, zorder=3)
+    ax.annotate('Airport', (-111.666, 35.144), xytext=(6, -10), textcoords='offset points', fontsize=8.5, color=INK)
+    ax.set_aspect(1 / np.cos(np.deg2rad(35.2)))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(title, loc='left', color=INK)
+    clean(ax)
+    fig.tight_layout()
+    return fig
+
+
+def _rain_panel(ax, h):
+    q10, q50, q90 = (h.quantile(q, axis=1) for q in (0.1, 0.5, 0.9))
+    ax.fill_between(h.index, q10, q90, step='post', color=BLUE_LIGHT, lw=0, label='10–90th percentile')
+    ax.step(h.index, q50, where='post', color=BLUE, lw=1.5, label='median')
+    ax.legend(frameon=False, fontsize=8.5, loc='upper left')
+    ax.set_ylabel(f'Rain, {h.shape[1]}\ngauges (in/h)')
+
+
+def network_timeseries(hourly, df=None, title=None, start=None, end=None):
+    """Hourly network rain (median and 10-90th percentile across gauges); with df (ERA5 point series), also
+    IVT, 250-hPa wind and 500-hPa height at Flagstaff."""
+    if df is None:
+        fig, ax = plt.subplots(figsize=(11, 3.2), facecolor=SURF)
+        _rain_panel(ax, hourly.loc[start:end])
+        loc = plt.matplotlib.dates.AutoDateLocator(maxticks=10)
+        ax.xaxis.set_major_locator(loc)
+        ax.xaxis.set_major_formatter(plt.matplotlib.dates.ConciseDateFormatter(loc))
+        clean(ax)
+        ax.set_title(title or 'Gauge network hourly rain (UTC)', loc='left', fontsize=11.5, color=INK)
+        fig.tight_layout()
+        return fig
     fig, axes = plt.subplots(4, 1, figsize=(11, 8.5), sharex=True, facecolor=SURF,
                              gridspec_kw={'height_ratios': [1.2, 1, 1, 1]})
     h = hourly.loc[df.index[0]:df.index[-1] + pd.Timedelta('6h')]
-    q10, q50, q90 = (h.quantile(q, axis=1) for q in (0.1, 0.5, 0.9))
-    axes[0].fill_between(h.index, q10, q90, step='post', color=BLUE_LIGHT, lw=0, label='10–90th percentile')
-    axes[0].step(h.index, q50, where='post', color=BLUE, lw=1.5, label='median')
-    axes[0].legend(frameon=False, fontsize=8.5, loc='upper left')
-    axes[0].set_ylabel(f'Rain, {h.shape[1]} city\ngauges (in/h)')
+    _rain_panel(axes[0], h)
     axes[1].plot(df.index, df.ivt, color=INK, lw=2)
     axes[1].axhline(AR_IVT, color=ORANGE, lw=1.5, ls='--')
     axes[1].text(df.index[0], AR_IVT + 15, f'{AR_IVT} kg m⁻¹ s⁻¹', color=ORANGE, fontsize=8.5)
@@ -40,7 +82,7 @@ def network_timeseries(hourly, df, title=None):
     for ax in axes:
         clean(ax)
     lat, lon = df.attrs.get('grid_point', (np.nan, np.nan))
-    axes[0].set_title(title or f'City gauge network rain and ERA5 at {lat:.2f}°N, {abs(lon):.2f}°W (UTC)',
+    axes[0].set_title(title or f'Gauge network rain and ERA5 at {lat:.2f}°N, {abs(lon):.2f}°W (UTC)',
                       loc='left', fontsize=11.5, color=INK)
     fig.tight_layout()
     return fig
@@ -79,13 +121,13 @@ def draw_map(ax, ds, lsm, t, best_track=None):
 
 def map_panels(ds, lsm, times, best_track=None, ncols=3):
     nrows = int(np.ceil(len(times) / ncols))
-    fig, axes = plt.subplots(nrows, ncols, figsize=(15, 3.6 * nrows + 1.0), facecolor=SURF, squeeze=False)
+    fig, axes = plt.subplots(nrows, ncols, figsize=(15, 3.4 * nrows + 1.3), facecolor=SURF, squeeze=False,
+                             layout='constrained')
     for ax, t in zip(axes.flat, times):
         pc = draw_map(ax, ds, lsm, t, best_track)
     for ax in axes.flat[len(times):]:
         ax.set_visible(False)
-    cb = fig.colorbar(pc, ax=axes, orientation='horizontal', fraction=0.03, pad=0.03, aspect=50)
-    cb.set_label('IVT (kg m⁻¹ s⁻¹); blue contour and arrows: IVT ≥ 250', color=INK)
-    fig.suptitle('ERA5: IVT (shading), 500-hPa height (black, 60 m), 250-hPa wind 40/55/70 m s⁻¹ (orange); '
-                 '★ Flagstaff; ✕ NHC best-track position', x=0.01, ha='left', fontsize=12, color=INK)
+    cb = fig.colorbar(pc, ax=axes, orientation='horizontal', shrink=0.5, aspect=40)
+    cb.set_label('IVT (kg m⁻¹ s⁻¹); blue contour and arrows: IVT ≥ 250. Black: 500-hPa height (60 m). '
+                 'Orange: 250-hPa wind 40/55/70 m s⁻¹. ★ Flagstaff. ✕ NHC best track.', color=INK)
     return fig

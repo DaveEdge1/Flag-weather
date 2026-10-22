@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *'   # daily 06:00 MST: refresh network and provisional pages
 
 permissions:
   contents: read
@@ -26,6 +28,9 @@ jobs:
       - run: pip install -r requirements.txt
       - uses: quarto-dev/quarto-actions/setup@v2
       - name: Render site
+        env:
+          CDSAPI_URL: https://cds.climate.copernicus.eu/api
+          CDSAPI_KEY: ${{ secrets.CDS }}
         run: quarto render site
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,0 +1,64 @@
+---
+title: "September 23, 2026"
+date: 2026-09-23
+description: "Network median 0.08 in (range 0.00–2.36 in); peak IVT 68 kg m⁻¹ s⁻¹ from the SW"
+categories: [IVT < 250, Final]
+execute:
+  freeze: auto
+---
+
+```{python}
+import sys
+sys.path.insert(0, '../..')
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+from flagweather import page
+from flagweather.config import SNOTEL
+from flagweather.event import Event
+from flagweather.figures import events as figs
+from flagweather.sources import era5, snotel
+
+ev = Event('2026-09-23T12', '2026-09-24T06', map_times=[]).load()
+Markdown(page.summary(ev))
+```
+
+## Rain across the network
+
+```{python}
+#| fig-cap: "Event rain total at each city and county gauge (circle area proportional to total, labels in inches). Triangles: SNOTEL sites with event precipitation (in). Square: Flagstaff airport."
+figs.gauge_map(ev.net, ev.totals, 'Event rain total (in)', snotel.stations(list(SNOTEL)), ev.snotel_stats().precip)
+plt.show()
+```
+
+```{python}
+#| fig-cap: "Hourly rain across the gauge network (median and 10th–90th percentile). When ERA5 is available: IVT, 250-hPa wind speed and 500-hPa height at the ERA5 grid point nearest Flagstaff."
+if ev.final:
+    figs.network_timeseries(ev.hourly, ev.point.loc[ev.start - pd.Timedelta('1D'):ev.end + pd.Timedelta('1D')])
+else:
+    figs.network_timeseries(ev.hourly, start=ev.start, end=ev.end)
+plt.show()
+```
+
+```{python}
+#| output: asis
+if ev.final:
+    print('## Atmospheric setting\n')
+```
+
+```{python}
+#| fig-cap: "ERA5 integrated vapour transport (IVT), 500-hPa height and 250-hPa wind speed. Blue contour and arrows: IVT ≥ 250 kg m⁻¹ s⁻¹. ✕: NHC best-track positions."
+if ev.final:
+    figs.map_panels(ev.era5, era5.land_sea_mask(), ev.default_map_times(), ev.best_track)
+    plt.show()
+```
+
+## Station data
+
+```{python}
+#| output: asis
+print('**Flagstaff airport (daily, local days)**\n')
+print(page.station_table(ev))
+print('\n\n**SNOTEL**\n')
+print(page.snotel_table(ev))
+```

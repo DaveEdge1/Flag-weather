@@ -1,5 +1,6 @@
 """NRCS SNOTEL daily data via the AWDB REST API."""
 import json
+import time
 import urllib.request
 
 import pandas as pd
@@ -10,9 +11,19 @@ API = 'https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1'
 ELEMENTS = ['WTEQ', 'SNWD', 'PREC', 'TMAX', 'TMIN', 'TAVG']
 
 
+def _retry(fn, tries=4):
+    for i in range(tries):
+        try:
+            return fn()
+        except Exception:
+            if i == tries - 1:
+                raise
+            time.sleep(5 * (i + 1))
+
+
 def _get(path):
     req = urllib.request.Request(API + path, headers={'User-Agent': 'Flag-weather'})
-    return json.loads(urllib.request.urlopen(req, timeout=120).read().decode())
+    return _retry(lambda: json.loads(urllib.request.urlopen(req, timeout=120).read().decode()))
 
 
 def stations(triplets):

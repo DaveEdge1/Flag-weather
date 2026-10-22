@@ -9,6 +9,12 @@ for _d in (DATA, DERIVED):
 
 FLAGSTAFF = dict(lat=35.2, lon=-111.65)
 
+# ALERT gauges outside the Flagstaff area (Williams), excluded from the network
+EXCLUDE_GAUGES = {'alert1/3920': 'City Dam (Williams)', 'alert1/3921': 'Williams West'}
+
+# Tropical cyclone within this distance of Flagstaff during an event is reported
+TC_RADIUS_KM = 1500
+
 # NWS Flagstaff Pulliam Airport, threaded record (RCC-ACIS)
 ACIS_SID = 'FLGthr'
 

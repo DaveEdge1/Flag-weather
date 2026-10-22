@@ -6,7 +6,7 @@ title: "Methods and data"
 
 | Source | Used for | Latency |
 |---|---|---|
-| [City of Flagstaff ALERT network](https://rain.flagstaffaz.gov/jefmap/) | Event detection, rain totals and timing across ~40 gauges | Minutes |
+| [City of Flagstaff / Coconino County ALERT network](https://rain.flagstaffaz.gov/jefmap/) | Rain totals and timing across 39 Flagstaff-area gauges | Minutes |
 | [NRCS SNOTEL](https://www.nrcs.usda.gov/wps/portal/wcc/home/) (Fort Valley, Snowslide Canyon, Fry) | Snow water equivalent, snow depth, precipitation, temperature | Daily |
 | NWS Flagstaff Pulliam Airport via [RCC-ACIS](https://www.rcc-acis.org/) | Monthly temperature and precipitation, 1991–2020 normals | About 1 day |
 | [ERA5](https://cds.climate.copernicus.eu/) (Copernicus Climate Change Service) | Moisture transport, 250-hPa wind, 500-hPa height | About 5 days |
@@ -16,12 +16,24 @@ title: "Methods and data"
 
 - **IVT (integrated vapour transport):** the magnitude of the vertically integrated water-vapour flux, in kg m⁻¹ s⁻¹, from ERA5's eastward and northward components.
 - **Atmospheric-river conditions:** IVT ≥ 250 kg m⁻¹ s⁻¹.
-- **Network rain:** the median and the 10th–90th percentile range across city gauges, so that no single gauge stands in for the city.
+- **Network rain:** the median and the 10th–90th percentile range across city and county gauges, so that no single gauge stands in for the city.
 - **Provisional / final:** event pages are provisional until ERA5 covers the event (about 5 days after it ends).
+- **Event window:** a UTC period chosen to contain the event's rain; gauge totals are summed over it. Airport and SNOTEL values are for the local (MST) calendar days it covers.
+
+## Event tags
+
+Tags are assigned by rule, not by judgement:
+
+| Tag | Rule |
+|---|---|
+| IVT ≥ 250 / IVT < 250 | Maximum ERA5 IVT at the grid point nearest Flagstaff during the event window |
+| Tropical cyclone nearby | An NHC best-track position (tropical depression or stronger, or its remnant) within 1,500 km of Flagstaff between one day before and the end of the event window |
+| Snow | Snowfall at the airport, or snow water equivalent above zero at a SNOTEL site at the end of the event |
+| Provisional / Final | Whether ERA5 covers the event window |
 
 ## Attribution and licences
 
-- Rain-gauge data courtesy of the City of Flagstaff; provisional and not quality controlled.
+- Rain-gauge data courtesy of the City of Flagstaff and Coconino County, used with the City's permission for non-commercial purposes; provisional and not quality controlled.
 - Contains modified Copernicus Climate Change Service information (2026). Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains.
 - SNOTEL data: USDA Natural Resources Conservation Service. Airport data: NOAA National Weather Service via RCC-ACIS. Tropical cyclone tracks: NOAA National Hurricane Center.
 - Code: MIT licence, [github.com/DaveEdge1/Flag-weather](https://github.com/DaveEdge1/Flag-weather).

@@ -1,5 +1,7 @@
 ---
 title: "Observing network"
+execute:
+  freeze: false
 ---
 
 ```{python}
@@ -8,8 +10,8 @@ sys.path.insert(0, '..')
 import matplotlib.pyplot as plt
 import pandas as pd
 from IPython.display import Markdown
-from flagweather.config import SNOTEL
-from flagweather.figures.style import BLUE, INK, MUTED, ORANGE, SURF, clean
+from flagweather.config import EXCLUDE_GAUGES, SNOTEL
+from flagweather.figures.events import gauge_map
 from flagweather.sources import gauges, snotel
 
 net = gauges.network()
@@ -18,24 +20,11 @@ asof = pd.Timestamp(net.latest.max()).tz_convert('America/Phoenix')
 Markdown(f'Rolling totals as of {asof:%b %d, %Y %H:%M} MST.')
 ```
 
-## City of Flagstaff rain gauges
+## Rain gauges
 
 ```{python}
-#| fig-cap: "City ALERT rain gauges (circles, area proportional to 30-day total), SNOTEL sites (triangles) and the Flagstaff airport (square)."
-fig, ax = plt.subplots(figsize=(9, 7.5), facecolor=SURF)
-ax.scatter(net.lon, net.lat, s=net.last_P30D.fillna(0) * 25, color=BLUE, alpha=0.6, edgecolor=SURF, lw=1)
-for _, r in net.dropna(subset=['last_P30D']).iterrows():
-    ax.annotate(f'{r.last_P30D:.1f}', (r.lon, r.lat), fontsize=7, color=INK, ha='center', va='center')
-ax.scatter(sno.lon, sno.lat, marker='^', s=90, color=ORANGE, edgecolor=INK, lw=0.6, zorder=3)
-for t, r in sno.iterrows():
-    ax.annotate(r['name'], (r.lon, r.lat), xytext=(6, 4), textcoords='offset points', fontsize=8.5, color=INK)
-ax.scatter([-111.666], [35.144], marker='s', s=60, color=INK, zorder=3)
-ax.annotate('Airport', (-111.666, 35.144), xytext=(6, -10), textcoords='offset points', fontsize=8.5, color=INK)
-ax.set_aspect(1 / 0.818)
-ax.set_xlabel('Longitude')
-ax.set_ylabel('Latitude')
-ax.set_title('30-day rain total (in) at each city gauge', loc='left', color=INK)
-clean(ax)
+#| fig-cap: "City of Flagstaff and Coconino County ALERT rain gauges (circle area proportional to 30-day total, labels in inches), SNOTEL sites (triangles) and the Flagstaff airport (square)."
+gauge_map(net, net.last_P30D, '30-day rain total (in)', sno)
 plt.show()
 ```
 
@@ -45,7 +34,11 @@ t.columns = ['Site', 'Owner', 'Lat', 'Lon', '1-day (in)', '7-day (in)', '30-day 
 Markdown(t.round({'Lat': 3, 'Lon': 3, '1-day (in)': 2, '7-day (in)': 2, '30-day (in)': 2}).to_markdown(index=False))
 ```
 
-The gauges are 1-mm tipping buckets operated for flood warning. Rolling totals are provisional and are not quality controlled.
+```{python}
+Markdown(f'The gauges are 1-mm tipping buckets operated for flood warning by the City of Flagstaff and Coconino County. '
+         f'Totals are provisional and not quality controlled. Gauges near Williams '
+         f'({", ".join(EXCLUDE_GAUGES.values())}) are excluded.')
+```
 
 ## SNOTEL sites
 
@@ -57,4 +50,4 @@ Markdown(s.to_markdown(index=False))
 
 ## Flagstaff airport
 
-NWS Flagstaff Pulliam Airport (35.144°N, 111.666°W), threaded record from RCC-ACIS, used for monthly temperature and precipitation against 1991–2020 normals.
+NWS Flagstaff Pulliam Airport (35.144°N, 111.666°W), threaded record from RCC-ACIS, used for daily and monthly temperature, precipitation and snowfall.
