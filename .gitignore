@@ -1,0 +1,12 @@
+# download cache (derived tables are committed)
+data/*
+!data/derived/
+# Quarto
+site/_site/
+site/.quarto/
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+# never commit credentials
+.cdsapirc

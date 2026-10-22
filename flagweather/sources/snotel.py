@@ -1,0 +1,31 @@
+"""NRCS SNOTEL daily data via the AWDB REST API."""
+import json
+import urllib.request
+
+import pandas as pd
+
+API = 'https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1'
+# WTEQ snow water equivalent (in), SNWD snow depth (in), PREC water-year accumulated precip (in),
+# TMAX/TMIN/TAVG air temperature (degF)
+ELEMENTS = ['WTEQ', 'SNWD', 'PREC', 'TMAX', 'TMIN', 'TAVG']
+
+
+def _get(path):
+    req = urllib.request.Request(API + path, headers={'User-Agent': 'Flag-weather'})
+    return json.loads(urllib.request.urlopen(req, timeout=120).read().decode())
+
+
+def stations(triplets):
+    d = _get('/stations?stationTriplets=' + ','.join(triplets) + '&returnStationElements=false')
+    return pd.DataFrame([dict(triplet=s['stationTriplet'], name=s['name'], lat=s['latitude'], lon=s['longitude'],
+                              elev_ft=s['elevation'], begin=s.get('beginDate', '')[:10]) for s in d]).set_index('triplet')
+
+
+def daily(triplets, start, end, elements=ELEMENTS):
+    """Long table: date, triplet, element, value."""
+    d = _get(f'/data?stationTriplets={",".join(triplets)}&elements={",".join(elements)}'
+             f'&duration=DAILY&beginDate={start}&endDate={end}')
+    rows = [dict(date=pd.Timestamp(v['date']), triplet=s['stationTriplet'],
+                 element=e['stationElement']['elementCode'], value=v.get('value'))
+            for s in d for e in s['data'] for v in e['values']]
+    return pd.DataFrame(rows)

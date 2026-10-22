@@ -1,0 +1,15 @@
+---
+title: "Flag-weather"
+subtitle: "Storm events and monthly climate synopses for Flagstaff, Arizona"
+---
+
+This site documents precipitation events in Flagstaff and the atmospheric patterns that produced them, using the City of Flagstaff rain-gauge network, nearby SNOTEL sites, the Flagstaff airport record and ERA5 reanalysis.
+
+- **[Events](events/index.qmd)**: one page per rain or snow event, with gauge-network totals and maps of moisture transport, the jet stream and 500-hPa heights.
+- **[Monthly](monthly/index.qmd)**: temperature and precipitation against normal, the month's events, and the state of climate indices.
+- **[Network](network.qmd)**: the gauges and SNOTEL sites used here.
+- **[Methods](methods.qmd)**: data sources, definitions and thresholds.
+
+::: {.callout-note}
+The site is under construction. Event and monthly pages for autumn 2026 are being added.
+:::

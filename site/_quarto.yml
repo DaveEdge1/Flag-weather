@@ -1,0 +1,38 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Flag-weather"
+  description: "Storm events and monthly climate synopses for Flagstaff, Arizona"
+  site-url: https://daveedge1.github.io/Flag-weather/
+  repo-url: https://github.com/DaveEdge1/Flag-weather
+  repo-actions: [issue]
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: events/index.qmd
+        text: Events
+      - href: monthly/index.qmd
+        text: Monthly
+      - href: network.qmd
+        text: Network
+      - href: methods.qmd
+        text: Methods
+  page-footer:
+    center: "Data: City of Flagstaff ALERT network · NRCS SNOTEL · NWS/RCC-ACIS · ERA5 (Copernicus) · NHC"
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    fig-format: png
+    fig-dpi: 130
+
+execute:
+  echo: false
+  warning: false
+  freeze: auto

@@ -1,0 +1,27 @@
+---
+title: "Methods and data"
+---
+
+## Data sources
+
+| Source | Used for | Latency |
+|---|---|---|
+| [City of Flagstaff ALERT network](https://rain.flagstaffaz.gov/jefmap/) | Event detection, rain totals and timing across ~40 gauges | Minutes |
+| [NRCS SNOTEL](https://www.nrcs.usda.gov/wps/portal/wcc/home/) (Fort Valley, Snowslide Canyon, Fry) | Snow water equivalent, snow depth, precipitation, temperature | Daily |
+| NWS Flagstaff Pulliam Airport via [RCC-ACIS](https://www.rcc-acis.org/) | Monthly temperature and precipitation, 1991–2020 normals | About 1 day |
+| [ERA5](https://cds.climate.copernicus.eu/) (Copernicus Climate Change Service) | Moisture transport, 250-hPa wind, 500-hPa height | About 5 days |
+| [NHC best track](https://ftp.nhc.noaa.gov/atcf/btk/) | Tropical cyclone positions | Hours (operational; final after season) |
+
+## Definitions
+
+- **IVT (integrated vapour transport):** the magnitude of the vertically integrated water-vapour flux, in kg m⁻¹ s⁻¹, from ERA5's eastward and northward components.
+- **Atmospheric-river conditions:** IVT ≥ 250 kg m⁻¹ s⁻¹.
+- **Network rain:** the median and the 10th–90th percentile range across city gauges, so that no single gauge stands in for the city.
+- **Provisional / final:** event pages are provisional until ERA5 covers the event (about 5 days after it ends).
+
+## Attribution and licences
+
+- Rain-gauge data courtesy of the City of Flagstaff; provisional and not quality controlled.
+- Contains modified Copernicus Climate Change Service information (2026). Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains.
+- SNOTEL data: USDA Natural Resources Conservation Service. Airport data: NOAA National Weather Service via RCC-ACIS. Tropical cyclone tracks: NOAA National Hurricane Center.
+- Code: MIT licence, [github.com/DaveEdge1/Flag-weather](https://github.com/DaveEdge1/Flag-weather).

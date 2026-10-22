@@ -1,0 +1,9 @@
+---
+title: "Monthly synopses"
+listing:
+  contents: "*.qmd"
+  sort: "date desc"
+  type: table
+  fields: [date, title, description]
+  empty-message: "The first synopsis (October 2026) is in preparation."
+---
