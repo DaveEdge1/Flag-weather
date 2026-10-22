@@ -1,4 +1,4 @@
-# Flag-weather
+# Flag weather retrospective
 
 Storm events and monthly climate synopses for Flagstaff, Arizona: https://daveedge1.github.io/Flag-weather/
 

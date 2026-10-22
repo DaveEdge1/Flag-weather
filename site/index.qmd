@@ -1,5 +1,5 @@
 ---
-title: "Flag-weather"
+title: "Flag weather retrospective"
 subtitle: "Storm events and monthly climate synopses for Flagstaff, Arizona"
 ---
 

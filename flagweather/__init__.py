@@ -1,1 +1,1 @@
-"""Flag-weather: Flagstaff storm events and monthly climate synopses."""
+"""Flag weather retrospective: Flagstaff storm events and monthly climate synopses."""

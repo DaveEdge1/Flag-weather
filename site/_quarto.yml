@@ -3,7 +3,7 @@ project:
   output-dir: _site
 
 website:
-  title: "Flag-weather"
+  title: "Flag weather retrospective"
   description: "Storm events and monthly climate synopses for Flagstaff, Arizona"
   site-url: https://daveedge1.github.io/Flag-weather/
   repo-url: https://github.com/DaveEdge1/Flag-weather
