@@ -20,24 +20,36 @@ from flagweather.figures import events as figs
 from flagweather.sources import era5, snotel
 
 ev = Event('2026-09-27T12', '2026-10-01T06', map_times=[]).load()
-Markdown(page.summary(ev))
+```
+
+## Summary
+
+```{python}
+#| output: asis
+print(page.narrative(ev))
 ```
 
 ## Rain across the network
 
 ```{python}
-#| fig-cap: "Event rain total at each city and county gauge (circle area proportional to total, labels in inches). Triangles: SNOTEL sites with event precipitation (in). Square: Flagstaff airport."
+#| fig-cap: "Event rain total at each city and county gauge (circle area proportional to total, labels in inches) over shaded relief (USGS 3DEP), 200-m elevation contours, streams (USGS NHD) and highways (Census TIGER). Orange triangles: SNOTEL sites with event precipitation (in). Square: Flagstaff airport."
 figs.gauge_map(ev.net, ev.totals, 'Event rain total (in)', snotel.stations(list(SNOTEL)), ev.snotel_stats().precip)
 plt.show()
 ```
 
 ```{python}
-#| fig-cap: "Hourly rain across the gauge network (median and 10th–90th percentile). When ERA5 is available: IVT, 250-hPa wind speed and 500-hPa height at the ERA5 grid point nearest Flagstaff."
+#| fig-cap: "Hourly and cumulative rain across the gauge network (median and 10th–90th percentile; cumulative from the start of the event window). When ERA5 is available: IVT, 250-hPa wind speed and 500-hPa height at the ERA5 grid point nearest Flagstaff. Times UTC."
 if ev.final:
-    figs.network_timeseries(ev.hourly, ev.point.loc[ev.start - pd.Timedelta('1D'):ev.end + pd.Timedelta('1D')])
+    figs.network_timeseries(ev.hourly, ev.point.loc[ev.start - pd.Timedelta('1D'):ev.end + pd.Timedelta('1D')],
+                            start=ev.start, end=ev.end)
 else:
     figs.network_timeseries(ev.hourly, start=ev.start, end=ev.end)
 plt.show()
+```
+
+```{python}
+#| output: asis
+print(page.key_numbers(ev))
 ```
 
 ```{python}
@@ -47,18 +59,26 @@ if ev.final:
 ```
 
 ```{python}
+#| column: page
 #| fig-cap: "ERA5 integrated vapour transport (IVT), 500-hPa height and 250-hPa wind speed. Blue contour and arrows: IVT ≥ 250 kg m⁻¹ s⁻¹. ✕: NHC best-track positions."
 if ev.final:
     figs.map_panels(ev.era5, era5.land_sea_mask(), ev.default_map_times(), ev.best_track)
     plt.show()
 ```
 
+## Climate context
+
+```{python}
+#| output: asis
+print(page.climate(ev))
+```
+
 ## Station data
 
 ```{python}
 #| output: asis
-print('**Flagstaff airport (daily, local days)**\n')
+print('**Flagstaff airport** (local days; normals 1991–2020; M = not yet reported)\n')
 print(page.station_table(ev))
-print('\n\n**SNOTEL**\n')
+print('\n\n**SNOTEL** (water-year precipitation from Oct 1; medians 1991–2020)\n')
 print(page.snotel_table(ev))
 ```

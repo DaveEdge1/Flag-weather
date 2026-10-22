@@ -48,7 +48,7 @@ def fetch(start, end, overwrite=False):
 
 
 def load(start, end):
-    """Merged dataset with ivt, ivt_u, ivt_v, tcwv, ws250, z500 for [start, end]."""
+    """Merged dataset with ivt, ivt_u, ivt_v, tcwv, ws250, z500, u500, v500 for [start, end]."""
     pl = xr.concat([xr.open_dataset(f) for f in sorted(glob.glob(str(DIR / 'pl_*.nc')))], 'valid_time')
     sl = xr.concat([xr.open_dataset(f) for f in sorted(glob.glob(str(DIR / 'sl_*.nc')))], 'valid_time')
     pl = pl.sortby('valid_time').drop_duplicates('valid_time').sel(valid_time=slice(start, end))
@@ -57,6 +57,8 @@ def load(start, end):
         'ivt': np.hypot(sl.viwve, sl.viwvn), 'ivt_u': sl.viwve, 'ivt_v': sl.viwvn, 'tcwv': sl.tcwv,
         'ws250': np.hypot(pl.u.sel(pressure_level=250), pl.v.sel(pressure_level=250)).drop_vars('pressure_level'),
         'z500': (pl.z.sel(pressure_level=500) / 9.80665).drop_vars('pressure_level'),
+        'u500': pl.u.sel(pressure_level=500).drop_vars('pressure_level'),
+        'v500': pl.v.sel(pressure_level=500).drop_vars('pressure_level'),
     })
 
 

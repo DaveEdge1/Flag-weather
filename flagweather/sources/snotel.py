@@ -33,10 +33,10 @@ def stations(triplets):
 
 
 def daily(triplets, start, end, elements=ELEMENTS):
-    """Long table: date, triplet, element, value."""
+    """Long table: date, triplet, element, value, median (1991-2020 median for that date, where defined)."""
     d = _get(f'/data?stationTriplets={",".join(triplets)}&elements={",".join(elements)}'
-             f'&duration=DAILY&beginDate={start}&endDate={end}')
+             f'&duration=DAILY&beginDate={start}&endDate={end}&centralTendencyType=MEDIAN')
     rows = [dict(date=pd.Timestamp(v['date']), triplet=s['stationTriplet'],
-                 element=e['stationElement']['elementCode'], value=v.get('value'))
+                 element=e['stationElement']['elementCode'], value=v.get('value'), median=v.get('median'))
             for s in d for e in s['data'] for v in e['values']]
     return pd.DataFrame(rows)
