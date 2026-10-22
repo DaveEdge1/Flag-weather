@@ -19,48 +19,56 @@ from flagweather.event import Event
 from flagweather.figures import events as figs
 from flagweather.sources import era5, snotel
 
-ev = Event('2026-09-27T12', '2026-10-01T06', map_times=[]).load()
+try:
+    ev = Event('2026-09-27T12', '2026-10-01T06', map_times=[]).load()
+    ok = True
+except Exception as err:   # a data source was unreachable at build time
+    ok = False
+    print(f'*Some data sources could not be reached when this page was built ({type(err).__name__}). '
+          'The page will be completed by the next scheduled build.*')
 ```
-
-## Summary
 
 ```{python}
 #| output: asis
-print(page.narrative(ev))
+if ok:
+    print('## Summary\n')
+    print(page.narrative(ev))
+    print('\n## Rain across the network\n')
 ```
-
-## Rain across the network
 
 ```{python}
 #| fig-cap: "Event rain total at each city and county gauge (circle area proportional to total, labels in inches) over shaded relief (USGS 3DEP), 200-m elevation contours, streams (USGS NHD) and highways (Census TIGER). Orange triangles: SNOTEL sites with event precipitation (in). Square: Flagstaff airport."
-figs.gauge_map(ev.net, ev.totals, 'Event rain total (in)', snotel.stations(list(SNOTEL)), ev.snotel_stats().precip)
-plt.show()
+if ok:
+    figs.gauge_map(ev.net, ev.totals, 'Event rain total (in)', snotel.stations(list(SNOTEL)), ev.snotel_stats().precip)
+    plt.show()
 ```
 
 ```{python}
 #| fig-cap: "Hourly and cumulative rain across the gauge network (median and 10th–90th percentile; cumulative from the start of the event window). When ERA5 is available: IVT, 250-hPa wind speed and 500-hPa height at the ERA5 grid point nearest Flagstaff. Times UTC."
-if ev.final:
+if ok and ev.final:
     figs.network_timeseries(ev.hourly, ev.point.loc[ev.start - pd.Timedelta('1D'):ev.end + pd.Timedelta('1D')],
                             start=ev.start, end=ev.end)
-else:
+    plt.show()
+elif ok:
     figs.network_timeseries(ev.hourly, start=ev.start, end=ev.end)
-plt.show()
+    plt.show()
 ```
 
 ```{python}
 #| output: asis
-print(page.key_numbers(ev))
+if ok:
+    print(page.key_numbers(ev))
 ```
 
 ```{python}
 #| output: asis
-if ev.final:
+if ok and ev.final:
     print('## Atmospheric setting\n')
 ```
 
 ```{python}
 #| output: asis
-if ev.final:
+if ok and ev.final:
     from flagweather import animation
     frames = animation.write_frames(ev, era5.land_sea_mask())
     print(animation.player(frames, ev.era5_stats()['ivt_time'], 'player-2026-09-27'))
@@ -71,19 +79,19 @@ if ev.final:
           'and the map time marked in orange. Step with the buttons, slider or ← → keys; space plays and pauses.*\n')
 ```
 
-## Climate context
-
 ```{python}
 #| output: asis
-print(page.climate(ev))
+if ok:
+    print('## Climate context\n')
+    print(page.climate(ev))
+    print('\n## Station data\n')
 ```
 
-## Station data
-
 ```{python}
 #| output: asis
-print('**Flagstaff airport** (local days; normals 1991–2020; M = not yet reported)\n')
-print(page.station_table(ev))
-print('\n\n**SNOTEL** (water-year precipitation from Oct 1; medians 1991–2020)\n')
-print(page.snotel_table(ev))
+if ok:
+    print('**Flagstaff airport** (local days; normals 1991–2020; M = not yet reported)\n')
+    print(page.station_table(ev))
+    print('\n\n**SNOTEL** (water-year precipitation from Oct 1; medians 1991–2020)\n')
+    print(page.snotel_table(ev))
 ```

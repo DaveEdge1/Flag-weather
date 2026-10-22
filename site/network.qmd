@@ -5,47 +5,58 @@ execute:
 ---
 
 ```{python}
+#| output: asis
 import sys
 sys.path.insert(0, '..')
 import matplotlib.pyplot as plt
 import pandas as pd
-from IPython.display import Markdown
 from flagweather.config import EXCLUDE_GAUGES, SNOTEL
 from flagweather.figures.events import gauge_map
 from flagweather.sources import gauges, snotel
 
-net = gauges.network()
-sno = snotel.stations(list(SNOTEL))
-asof = pd.Timestamp(net.latest.max()).tz_convert('America/Phoenix')
-Markdown(f'Rolling totals as of {asof:%b %d, %Y %H:%M} MST.')
+sno = snotel.stations(list(SNOTEL))   # cached metadata
+try:
+    net = gauges.network()
+    ok = True
+    asof = pd.Timestamp(net.latest.max()).tz_convert('America/Phoenix')
+    print(f'Rolling totals as of {asof:%b %d, %Y %H:%M} MST.')
+except Exception as err:   # gauge server unreachable at build time
+    ok = False
+    print(f'*The gauge network could not be reached when this page was built ({type(err).__name__}); '
+          'current totals will return with the next scheduled build.*')
 ```
 
 ## Rain gauges
 
 ```{python}
 #| fig-cap: "City of Flagstaff and Coconino County ALERT rain gauges (circle area proportional to 30-day total, labels in inches), SNOTEL sites (triangles) and the Flagstaff airport (square)."
-gauge_map(net, net.last_P30D, '30-day rain total (in)', sno)
-plt.show()
+if ok:
+    gauge_map(net, net.last_P30D, '30-day rain total (in)', sno)
+    plt.show()
 ```
 
 ```{python}
-t = net[['site', 'owner', 'lat', 'lon', 'last_P1D', 'last_P7D', 'last_P30D']].sort_values('site')
-t.columns = ['Site', 'Owner', 'Lat', 'Lon', '1-day (in)', '7-day (in)', '30-day (in)']
-Markdown(t.round({'Lat': 3, 'Lon': 3, '1-day (in)': 2, '7-day (in)': 2, '30-day (in)': 2}).to_markdown(index=False))
+#| output: asis
+if ok:
+    t = net[['site', 'owner', 'lat', 'lon', 'last_P1D', 'last_P7D', 'last_P30D']].sort_values('site')
+    t.columns = ['Site', 'Owner', 'Lat', 'Lon', '1-day (in)', '7-day (in)', '30-day (in)']
+    print(t.round({'Lat': 3, 'Lon': 3, '1-day (in)': 2, '7-day (in)': 2, '30-day (in)': 2}).to_markdown(index=False))
 ```
 
 ```{python}
-Markdown(f'The gauges are 1-mm tipping buckets operated for flood warning by the City of Flagstaff and Coconino County. '
-         f'Totals are provisional and not quality controlled. Gauges near Williams '
-         f'({", ".join(EXCLUDE_GAUGES.values())}) are excluded.')
+#| output: asis
+print(f'\nThe gauges are 1-mm tipping buckets operated for flood warning by the City of Flagstaff and Coconino County. '
+      f'Totals are provisional and not quality controlled. Gauges near Williams '
+      f'({", ".join(EXCLUDE_GAUGES.values())}) are excluded.')
 ```
 
 ## SNOTEL sites
 
 ```{python}
+#| output: asis
 s = sno.reset_index()[['name', 'triplet', 'lat', 'lon', 'elev_ft', 'begin']]
 s.columns = ['Site', 'Station', 'Lat', 'Lon', 'Elevation (ft)', 'Record begins']
-Markdown(s.to_markdown(index=False))
+print(s.to_markdown(index=False))
 ```
 
 ## Flagstaff airport

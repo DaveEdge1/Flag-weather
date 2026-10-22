@@ -14,7 +14,7 @@ from ..config import EXCLUDE_GAUGES
 API = 'https://rain.flagstaffaz.gov/api'
 
 
-def _retry(fn, tries=4):
+def _retry(fn, tries=3):
     for i in range(tries):
         try:
             return fn()
@@ -26,7 +26,7 @@ def _retry(fn, tries=4):
 
 def _get(path):
     req = urllib.request.Request(API + path, headers={'User-Agent': 'Flag-weather', 'Accept': 'application/json'})
-    return _retry(lambda: json.loads(urllib.request.urlopen(req, timeout=120).read().decode()))
+    return _retry(lambda: json.loads(urllib.request.urlopen(req, timeout=45).read().decode()))
 
 
 def network():
