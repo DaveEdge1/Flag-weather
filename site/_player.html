@@ -1,0 +1,52 @@
+<style>
+  .fw-player { margin: 1rem 0; outline: none; }
+  .fw-player .fw-img { width: 100%; height: auto; display: block; border: 1px solid var(--bs-border-color, #ddd); }
+  .fw-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .5rem; }
+  .fw-controls button, .fw-controls select {
+    font-size: .9rem; padding: .2rem .6rem; border: 1px solid var(--bs-border-color, #ccc);
+    border-radius: 4px; background: var(--bs-body-bg, #fff); color: var(--bs-body-color, #000); cursor: pointer;
+  }
+  .fw-controls button:hover { background: var(--bs-tertiary-bg, #f2f2f2); }
+  .fw-controls .fw-play { min-width: 4.5rem; font-weight: 600; }
+  .fw-slider { flex: 1 1 200px; min-width: 150px; }
+  .fw-label { font-variant-numeric: tabular-nums; font-size: .9rem; min-width: 18rem; }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.fw-player').forEach(function (root) {
+      var d = JSON.parse(root.getAttribute('data-frames'));
+      var img = root.querySelector('.fw-img'), slider = root.querySelector('.fw-slider'),
+          label = root.querySelector('.fw-label'), speed = root.querySelector('.fw-speed'),
+          playBtn = root.querySelector('.fw-play');
+      var i = d.start, timer = null;
+      d.src.forEach(function (s) { var im = new Image(); im.src = s; });   // preload
+      function show(k) {
+        i = (k + d.src.length) % d.src.length;
+        img.src = d.src[i]; slider.value = i; label.textContent = d.label[i];
+      }
+      function stop() { clearInterval(timer); timer = null; playBtn.textContent = 'Play'; }
+      function play() {
+        stop(); playBtn.textContent = 'Pause';
+        timer = setInterval(function () { show(i + 1); }, +speed.value);
+      }
+      root.querySelectorAll('button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var a = b.getAttribute('data-act');
+          if (a === 'play') { timer ? stop() : play(); return; }
+          stop();
+          if (a === 'prev') show(i - 1);
+          if (a === 'next') show(i + 1);
+          if (a === 'first') show(0);
+          if (a === 'last') show(d.src.length - 1);
+        });
+      });
+      slider.addEventListener('input', function () { stop(); show(+slider.value); });
+      speed.addEventListener('change', function () { if (timer) play(); });
+      root.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { stop(); show(i - 1); e.preventDefault(); }
+        if (e.key === 'ArrowRight') { stop(); show(i + 1); e.preventDefault(); }
+        if (e.key === ' ') { timer ? stop() : play(); e.preventDefault(); }
+      });
+    });
+  });
+</script>

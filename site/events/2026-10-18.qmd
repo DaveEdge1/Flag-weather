@@ -59,11 +59,16 @@ if ev.final:
 ```
 
 ```{python}
-#| column: page
-#| fig-cap: "ERA5 integrated vapour transport (IVT), 500-hPa height and 250-hPa wind speed. Blue contour and arrows: IVT ≥ 250 kg m⁻¹ s⁻¹. ✕: NHC best-track positions."
+#| output: asis
 if ev.final:
-    figs.map_panels(ev.era5, era5.land_sea_mask(), ev.default_map_times(), ev.best_track)
-    plt.show()
+    from flagweather import animation
+    frames = animation.write_frames(ev, era5.land_sea_mask())
+    print(animation.player(frames, ev.era5_stats()['ivt_time'], 'player-2026-10-18'))
+    print('\n*ERA5 every 6 hours, from 12 h before to 12 h after the event window, opening at the time of peak IVT '
+          'at Flagstaff. Shading: integrated vapour transport (IVT); blue contour and arrows: IVT ≥ 250 kg m⁻¹ s⁻¹. '
+          'Black: 500-hPa height (60-m interval). Orange: 250-hPa wind 40, 55 and 70 m s⁻¹. ★ Flagstaff; '
+          '✕ NHC best-track position. Lower strip: network median hourly rain, with the event window shaded '
+          'and the map time marked in orange. Step with the buttons, slider or ← → keys; space plays and pauses.*\n')
 ```
 
 ## Climate context

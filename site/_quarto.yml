@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: _site
+  resources:
+    - "events/frames/**"
 
 website:
   title: "Flag weather retrospective"
@@ -30,7 +32,7 @@ filters:
 
 format:
   html:
-    include-after-body: _glossary-tooltips.html
+    include-after-body: [_glossary-tooltips.html, _player.html]
     theme:
       light: cosmo
       dark: darkly
