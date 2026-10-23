@@ -42,17 +42,22 @@ def summary(p, months3):
     pdo = p.pdo.dropna()
     lines.append(f'- **PDO:** {pdo.iloc[-1]:+.2f} in {pdo.index[-1]:%B %Y}, the '
                  f'{_ranktxt(pdo, pdo.index[-1], pdo.index[-1].strftime("%B") + " value")}.')
-    pna = p.pna.dropna()
-    lines.append(f'- **PNA:** {pna.iloc[-1]:+.2f} in {pna.index[-1]:%B %Y}; '
-                 f'{months3[0]:%b}–{months3[-1]:%b} mean {pna.reindex(months3).mean():+.2f}.')
-    al = p.al.loc[t]
-    lines.append(f'- **Aleutian Low ({mon}):** lowest sea-level pressure in the North Pacific box was {al.p:.0f} hPa at '
-                 f'{al.lat:.0f}°N {_lon(al.lon)} ({al.p_anom:+.1f} hPa relative to the {t:%B} mean for that box). '
-                 f'North Pacific Index anomaly {p.npi_a[t]:+.1f} hPa, the {_ranktxt(p.npi_a, t, t.strftime("%B") + " value")} '
-                 f'(negative means a deeper Aleutian Low).')
     h = p.nph.loc[t]
     lines.append(f'- **North Pacific High ({mon}):** highest sea-level pressure in the subtropical box was {h.p:.0f} hPa '
                  f'at {h.lat:.0f}°N {_lon(h.lon)} ({h.p_anom:+.1f} hPa relative to the {t:%B} mean).')
+    w = p.jet['W19'].pcs.dropna()
+    jt = w.index[-1]
+    lines.append(f'- **North Pacific jet ({jt:%B %Y}):** extension index {w.PC1.iloc[-1]:+.2f}, poleward-shift index '
+                 f'{w.PC2.iloc[-1]:+.2f} ({npj_regime(w.PC1.iloc[-1], w.PC2.iloc[-1])}); the last 12 months are in the '
+                 f'phase diagram below.')
+    f = p.flg_monthly.dropna(subset=['tavg', 'pcpn'])
+    ft = f.index[-1]
+    f3 = f.iloc[-3:]
+    lines.append(f'- **Flagstaff airport ({ft:%B %Y}):** mean temperature {f.tavg.iloc[-1]:.1f} °F '
+                 f'({f.tavg.iloc[-1] - f.tavg_n.iloc[-1]:+.1f} °F from the 1991–2020 normal); precipitation '
+                 f'{f.pcpn.iloc[-1]:.2f} in ({100 * f.pcpn.iloc[-1] / f.pcpn_n.iloc[-1]:.0f}% of normal). '
+                 f'{f3.index[0]:%b}–{ft:%b}: {(f3.tavg - f3.tavg_n).mean():+.1f} °F, '
+                 f'{f3.pcpn.sum():.2f} in ({100 * f3.pcpn.sum() / f3.pcpn_n.sum():.0f}% of normal).')
     return '\n'.join(lines)
 
 
@@ -117,15 +122,13 @@ def jet_current(p):
 
 
 def jet_table(skill):
-    names = {'ONI': 'ONI (Nov–Jan)', 'PNA': 'PNA', 'A10 P1': 'Athanasiadis P1 (≈ PNA)',
-             'A10 P2': 'Athanasiadis P2 (+: southward-displaced subtropical jet)',
+    names = {'ONI': 'ONI (Nov–Jan)', 'A10 P2': 'Athanasiadis P2 (+: southward-displaced subtropical jet)',
              'NPJ extension': 'NPJ EOF1 (+: jet extension)', 'NPJ poleward shift': 'NPJ EOF2 (+: poleward shift)',
              'SW trough (cross-validated)': 'Southwest trough (cross-validated)'}
     t = pd.DataFrame({
         'r with Flagstaff precip': skill.r.map('{:+.2f}'.format),
         'p': skill.p.map(lambda v: '< 0.001' if v < 0.001 else f'{v:.3f}'),
         'r with ONI': skill.r_ONI.map('{:+.2f}'.format),
-        'r with PNA': skill.r_PNA.map('{:+.2f}'.format),
         'partial r, ONI removed': skill.partial.map(lambda v: '—' if pd.isna(v) else f'{v:+.2f}'),
     })
     t.index = [names[i] for i in t.index]

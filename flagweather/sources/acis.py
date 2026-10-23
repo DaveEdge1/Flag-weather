@@ -75,3 +75,16 @@ def rank_in_month(total, ndays, month, record):
     roll = record.rolling(ndays, min_periods=ndays).sum()
     annual = roll[roll.index.month == month].groupby(roll[roll.index.month == month].index.year).max().dropna()
     return int((annual > total + 1e-9).sum() + 1), len(annual), int(annual.index.min())
+
+
+def monthly(start, end, sid=ACIS_SID):
+    """Monthly mean temperature (F) and total precipitation (in) with 1991-2020 normals; months with more than
+    3 missing days are NaN."""
+    e = [{'name': 'avgt', 'interval': 'mly', 'duration': 'mly', 'reduce': 'mean', 'maxmissing': 3},
+         {'name': 'avgt', 'interval': 'mly', 'duration': 'mly', 'reduce': 'mean', 'normal': '1'},
+         {'name': 'pcpn', 'interval': 'mly', 'duration': 'mly', 'reduce': 'sum', 'maxmissing': 3},
+         {'name': 'pcpn', 'interval': 'mly', 'duration': 'mly', 'reduce': 'sum', 'normal': '1'}]
+    d = _post('/StnData', {'sid': sid, 'sdate': str(start), 'edate': str(end), 'elems': e})['data']
+    df = pd.DataFrame(d, columns=['month', 'tavg', 'tavg_n', 'pcpn', 'pcpn_n']).set_index('month')
+    df.index = pd.to_datetime(df.index)
+    return df.apply(lambda c: c.map(_num))

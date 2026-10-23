@@ -117,6 +117,7 @@ class Pacific:
         mon = pr.resample('MS').agg(lambda x: x.sum(min_count=int(len(x) * 0.9)))
         self.flg_winter = self._winter_series(mon).rename('Flagstaff Nov–Mar precip (in)')
         self.jet = jet.standard(self.atm.u250, self.pna) if 'u250' in self.atm else None
+        self.flg_monthly = acis.monthly('2019-01', pd.Timestamp.now().strftime('%Y-%m'))
         self.latest_atm = pd.Timestamp(self.atm.time.values[-1])
         self.latest_sst = pd.Timestamp(self.sst.time.values[-1])
         return self
@@ -204,9 +205,7 @@ class Pacific:
         idx = {
             'ONI (Nov–Jan)': self.oni[self.oni.index.month == 12].set_axis(
                 [t.year for t in self.oni[self.oni.index.month == 12].index]),
-            'PDO': wm(self.pdo), 'PNA': wm(self.pna),
-            'North Pacific Index (Aleutian Low; lower = deeper)': wm(self.npi),
-            'Aleutian Low centre latitude': wm(self.al.lat), 'Aleutian Low centre longitude (°E)': wm(self.al.lon),
+            'PDO': wm(self.pdo),
             'North Pacific High central pressure': wm(self.nph.p),
             'North Pacific High centre latitude': wm(self.nph.lat),
         }
@@ -281,9 +280,9 @@ def jet_skill(d):
 
     def res(v):
         return v - X0 @ np.linalg.lstsq(X0, v, rcond=None)[0]
-    for k in ['ONI', 'PNA', 'A10 P1', 'A10 P2', 'NPJ extension', 'NPJ poleward shift', 'SW trough (cross-validated)']:
+    for k in ['ONI', 'A10 P2', 'NPJ extension', 'NPJ poleward shift', 'SW trough (cross-validated)']:
         r, pv = stats.pearsonr(d[k], d.precip)
-        row = dict(index=k, r=r, p=pv, r_ONI=d[k].corr(d.ONI), r_PNA=d[k].corr(d.PNA))
+        row = dict(index=k, r=r, p=pv, r_ONI=d[k].corr(d.ONI))
         if k != 'ONI':
             row['partial'], row['p_partial'] = stats.pearsonr(res(d[k].values), res(d.precip.values))
         rows.append(row)

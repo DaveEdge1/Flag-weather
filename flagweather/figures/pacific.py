@@ -61,8 +61,8 @@ def _colorbar(fig, pc, axes, kind):
 
 
 def _centres(p, months):
-    al, nph = p.al.loc[months].mean(), p.nph.loc[months].mean()
-    return {'L': (al.lat, al.lon), 'H': (nph.lat, nph.lon)}
+    nph = p.nph.loc[months].mean()
+    return {'H': (nph.lat, nph.lon)}
 
 
 def anomaly_maps(p, periods):
@@ -106,16 +106,19 @@ def correlation_maps(p, maps, n, sig):
 
 
 def index_timeseries(p, start):
+    f = p.flg_monthly
     series = [
         ('ONI (°C)', p.oni, [0.5, 1.0, 1.5, 2.0]),
         ('PDO', p.pdo, []),
-        ('PNA', p.pna, []),
-        ('North Pacific Index anomaly (hPa)\nnegative = deeper Aleutian Low', p.npi_a, []),
         ('North Pacific High central\npressure anomaly (hPa)', p.nph.p_anom, []),
+        ('NPJ extension\n(Winters EOF1)', p.jet['W19'].pcs.PC1, []),
+        ('NPJ poleward shift\n(Winters EOF2)', p.jet['W19'].pcs.PC2, []),
+        ('Flagstaff temperature\nanomaly (°F)', (f.tavg - f.tavg_n), []),
+        ('Flagstaff precipitation\nanomaly (in)', (f.pcpn - f.pcpn_n), []),
     ]
-    fig, axes = plt.subplots(len(series), 1, figsize=(11, 2.0 * len(series) + 0.6), sharex=True, facecolor=SURF)
+    fig, axes = plt.subplots(len(series), 1, figsize=(11, 1.75 * len(series) + 0.6), sharex=True, facecolor=SURF)
     for ax, (lab, s, refs) in zip(axes, series):
-        s = s.loc[start:]
+        s = s.loc[start:].dropna()
         ax.bar(s.index, s.values, width=25, color=[WARM if v >= 0 else COOL for v in s.values], align='edge')
         ax.axhline(0, color=MUTED, lw=0.8)
         for r in refs:
@@ -123,7 +126,7 @@ def index_timeseries(p, start):
                 ax.axhline(sign * r, color=GRID, lw=0.8, ls='--', zorder=0)
         ax.set_ylabel(lab, fontsize=8.5)
         clean(ax)
-        t, last = s.dropna().index[-1], s.dropna().iloc[-1]
+        t, last = s.index[-1], s.iloc[-1]
         when = (f'{SEASONS[t.month]} {t.year}' if lab.startswith('ONI') else f'{t:%b %Y}')
         ax.annotate(f'{when}: {last:+.2f}', xy=(1, 1), xycoords='axes fraction', ha='right',
                     va='bottom', fontsize=8.5, color=INK)
@@ -138,12 +141,12 @@ def index_timeseries(p, start):
 def jet_eof_maps(p):
     """Regression of 250-hPa zonal wind on each standardized PC, over the climatological jet of its season."""
     from ..jet import DEFS
-    panels = [('A10', 1, 'Athanasiadis P1 (≈ PNA)'), ('A10', 2, 'Athanasiadis P2 (+: southward-displaced subtropical jet)'),
-              ('W19', 1, 'NPJ EOF1 (+: jet extension)'), ('W19', 2, 'NPJ EOF2 (+: poleward shift)')]
-    fig, axes = plt.subplots(2, 2, figsize=(16, 9), facecolor=SURF, layout='constrained')
+    panels = [('A10', 2, 'Athanasiadis P2 (+: southward-displaced subtropical jet)'),
+              ('W19', 2, 'NPJ EOF2 (+: poleward shift)')]
+    fig, axes = plt.subplots(1, 2, figsize=(16, 4.8), facecolor=SURF, layout='constrained')
     levels = np.arange(-10, 10.1, 2)
     norm = BoundaryNorm(levels, DIV.N, extend='both')
-    for ax, (k, mode, title) in zip(axes.flat, panels):
+    for ax, (k, mode, title) in zip(np.atleast_1d(axes).flat, panels):
         d, e = DEFS[k], p.jet[k]
         pat = e.patterns.sel(mode=mode)
         pc = ax.pcolormesh(pat.longitude, pat.latitude, pat, cmap=DIV, norm=norm, shading='auto')
