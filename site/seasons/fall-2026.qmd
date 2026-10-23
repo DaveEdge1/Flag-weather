@@ -51,9 +51,9 @@ plt.show()
 ```
 
 ```{python}
-#| fig-cap: "July–September mean SST anomaly in the Baja box, 1950–2026 (relative to 1991–2020). 2026 in orange."
-figs.box_bars(b)
-plt.show()
+#| fig-cap: "July–September mean SST anomaly in the Baja box, 1950–2026 (relative to 1991–2020). 2026 in orange. Hover for each year's value."
+from flagweather.figures.interactive import show
+show(figs.box_bars(b))
 ```
 
 ### Sea-surface temperature under the storm tracks

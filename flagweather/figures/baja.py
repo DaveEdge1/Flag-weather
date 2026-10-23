@@ -61,17 +61,12 @@ def sst_map(b, months, track_month):
 
 
 def box_bars(b, months=(7, 8, 9)):
+    """Interactive bars of the Jul-Sep Baja box SST anomaly by year (Plotly); this year in orange."""
+    from .interactive import stacked_bars
     s = b.season_series(months)
-    fig, ax = plt.subplots(figsize=(11, 3.4), facecolor=SURF)
+    s.index = s.index.astype(int)
     colors = [ORANGE if y == b.year else (MUTED if v >= 0 else BLUE) for y, v in s.items()]
-    ax.bar(s.index, s.values, color=colors, width=0.8)
-    ax.axhline(0, color=MUTED, lw=0.8)
-    ax.set_ylabel('Jul–Sep SST anomaly (°C)')
-    ax.annotate(f'{b.year}: {s[b.year]:+.2f} °C', (b.year, s[b.year]), xytext=(-8, 4), textcoords='offset points',
-                ha='right', fontsize=9, color=INK)
-    clean(ax)
-    fig.tight_layout()
-    return fig
+    return stacked_bars([dict(series=s, label='Jul–Sep SST anomaly', unit='°C', colors=colors)], panel_height=260)
 
 
 def history_scatter(b):

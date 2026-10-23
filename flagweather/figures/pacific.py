@@ -106,34 +106,20 @@ def correlation_maps(p, maps, n, sig):
 
 
 def index_timeseries(p, start):
+    """Interactive stacked bars of the current-state indices (Plotly)."""
+    from .interactive import stacked_bars
     f = p.flg_monthly
-    series = [
-        ('ONI (°C)', p.oni, [0.5, 1.0, 1.5, 2.0]),
-        ('PDO', p.pdo, []),
-        ('North Pacific High central\npressure anomaly (hPa)', p.nph.p_anom, []),
-        ('North Pacific jet\n(Athanasiadis P2)', p.jet['A10'].pcs.PC2, []),
-        ('Flagstaff temperature\nanomaly (°F)', (f.tavg - f.tavg_n), []),
-        ('Flagstaff precipitation\nanomaly (in)', (f.pcpn - f.pcpn_n), []),
+    oni = p.oni.loc[start:]
+    season = pd.Series({t: f'{SEASONS[t.month]} {t.year}' for t in oni.index})
+    panels = [
+        dict(series=oni, label='ONI', unit='°C', refs=[0.5, 1.0, 1.5, 2.0], custom=season),
+        dict(series=p.pdo.loc[start:], label='PDO', unit=''),
+        dict(series=p.nph.p_anom.loc[start:], label='North Pacific High\ncentral pressure anomaly', unit='hPa'),
+        dict(series=p.jet['A10'].pcs.PC2.loc[start:], label='North Pacific jet\n(Athanasiadis P2)', unit=''),
+        dict(series=(f.tavg - f.tavg_n).loc[start:], label='Flagstaff temperature\nanomaly', unit='°F', fmt='+.1f'),
+        dict(series=(f.pcpn - f.pcpn_n).loc[start:], label='Flagstaff precipitation\nanomaly', unit='in'),
     ]
-    fig, axes = plt.subplots(len(series), 1, figsize=(11, 1.75 * len(series) + 0.6), sharex=True, facecolor=SURF)
-    for ax, (lab, s, refs) in zip(axes, series):
-        s = s.loc[start:].dropna()
-        ax.bar(s.index, s.values, width=25, color=[WARM if v >= 0 else COOL for v in s.values], align='edge')
-        ax.axhline(0, color=MUTED, lw=0.8)
-        for r in refs:
-            for sign in (1, -1):
-                ax.axhline(sign * r, color=GRID, lw=0.8, ls='--', zorder=0)
-        ax.set_ylabel(lab, fontsize=8.5)
-        clean(ax)
-        t, last = s.index[-1], s.iloc[-1]
-        when = (f'{SEASONS[t.month]} {t.year}' if lab.startswith('ONI') else f'{t:%b %Y}')
-        ax.annotate(f'{when}: {last:+.2f}', xy=(1, 1), xycoords='axes fraction', ha='right',
-                    va='bottom', fontsize=8.5, color=INK)
-    loc = plt.matplotlib.dates.AutoDateLocator(maxticks=10)
-    axes[-1].xaxis.set_major_locator(loc)
-    axes[-1].xaxis.set_major_formatter(plt.matplotlib.dates.ConciseDateFormatter(loc))
-    fig.tight_layout()
-    return fig
+    return stacked_bars(panels)
 
 
 # ---- North Pacific jet ----------------------------------------------------------------------------
@@ -172,19 +158,11 @@ def jet_eof_maps(p):
 
 
 def jet_winter_series(d):
-    fig, axes = plt.subplots(3, 1, figsize=(11, 7.2), sharex=True, facecolor=SURF)
-    pr = d.precip
-    axes[0].bar(pr.index, pr.values, color=[WARM if v >= pr.median() else COOL for v in pr.values], width=0.8)
-    axes[0].axhline(pr.median(), color=MUTED, lw=0.8, ls='--')
-    axes[0].set_ylabel('Flagstaff Nov–Mar\nprecipitation (in)', fontsize=8.5)
-    for ax, k, lab in [(axes[1], 'A10 P2', 'Athanasiadis P2\n(Nov–Mar mean PC)'),
-                       (axes[2], 'SW trough', 'Southwest trough\n500-hPa anomaly (m)')]:
-        s = d[k]
-        ax.bar(s.index, s.values, color=[WARM if v >= 0 else COOL for v in s.values], width=0.8)
-        ax.axhline(0, color=MUTED, lw=0.8)
-        ax.set_ylabel(lab, fontsize=8.5)
-    for ax in axes:
-        clean(ax)
-    axes[-1].set_xlabel('Winter (starting year)')
-    fig.tight_layout()
-    return fig
+    """Interactive stacked bars by winter (Plotly)."""
+    from .interactive import stacked_bars
+    panels = [
+        dict(series=d.precip, label='Flagstaff Nov–Mar\nprecipitation', unit='in', colors='median'),
+        dict(series=d['A10 P2'], label='Athanasiadis P2\n(Nov–Mar mean)', unit=''),
+        dict(series=d['SW trough'], label='Southwest trough\n500-hPa anomaly', unit='m', fmt='+.0f'),
+    ]
+    return stacked_bars(panels, panel_height=160)

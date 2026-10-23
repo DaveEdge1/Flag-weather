@@ -17,6 +17,7 @@ from IPython.display import Markdown
 from scipy import signal, stats
 from flagweather import pacific_page as text
 from flagweather.figures import pacific as figs
+from flagweather.figures.interactive import show
 from flagweather.pacific import Pacific, jet_skill, jet_winter_table, r2
 
 p = Pacific().load()
@@ -37,9 +38,8 @@ print(text.summary(p, m3))
 ### Indices
 
 ```{python}
-#| fig-cap: "Monthly values since 2020. ONI: 3-month running Niño3.4 anomaly (CPC), plotted at the centre month, dashed lines at ±0.5, 1.0, 1.5 and 2.0 °C. PDO: NCEI ERSSTv5. North Pacific High: highest sea-level pressure over 15–50°N, 180–120°W (ERA5). North Pacific jet: monthly projection onto the Athanasiadis et al. (2010) P2 pattern of 250-hPa zonal wind (defined for December–March). Flagstaff: airport monthly mean temperature and total precipitation minus 1991–2020 normals. Orange: positive; blue: negative."
-figs.index_timeseries(p, '2020-01-01')
-plt.show()
+#| fig-cap: "Monthly values since 2020. ONI: 3-month running Niño3.4 anomaly (CPC), plotted at the centre month, dashed lines at ±0.5, 1.0, 1.5 and 2.0 °C. PDO: NCEI ERSSTv5. North Pacific High: highest sea-level pressure over 15–50°N, 180–120°W (ERA5). North Pacific jet: monthly projection onto the Athanasiadis et al. (2010) P2 pattern of 250-hPa zonal wind (defined for December–March). Flagstaff: airport monthly mean temperature and total precipitation minus 1991–2020 normals. Orange: positive; blue: negative. Hover to see every value for a month."
+show(figs.index_timeseries(p, '2020-01-01'))
 ```
 
 ### Anomaly maps
@@ -125,9 +125,8 @@ print(f"- **Trend check:** with both series detrended, the cross-validated South
 ```
 
 ```{python}
-#| fig-cap: "Nov–Mar Flagstaff airport precipitation (orange: at or above the median; blue: below), Athanasiadis P2 (Nov–Mar mean of the monthly PC) and the Southwest trough index (Nov–Mar 500-hPa height anomaly over 31–41°N, 129–114°W), by winter starting year."
-figs.jet_winter_series(jd)
-plt.show()
+#| fig-cap: "Nov–Mar Flagstaff airport precipitation (orange: at or above the median; blue: below), Athanasiadis P2 (Nov–Mar mean of the monthly PC) and the Southwest trough index (Nov–Mar 500-hPa height anomaly over 31–41°N, 129–114°W), by winter starting year. Hover to see every value for a winter."
+show(figs.jet_winter_series(jd))
 ```
 
 ::: {.callout-note collapse="true"}

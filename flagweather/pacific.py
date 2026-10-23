@@ -207,7 +207,6 @@ class Pacific:
                 [t.year for t in self.oni[self.oni.index.month == 12].index]),
             'PDO': wm(self.pdo),
             'North Pacific High central pressure': wm(self.nph.p),
-            'North Pacific High centre latitude': wm(self.nph.lat),
         }
         rows = []
         for k, s in idx.items():
