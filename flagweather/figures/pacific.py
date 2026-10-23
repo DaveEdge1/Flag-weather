@@ -161,7 +161,7 @@ def jet_winter_series(d):
     """Interactive stacked bars by winter (Plotly)."""
     from .interactive import stacked_bars
     panels = [
-        dict(series=d.precip, label='Flagstaff Nov–Mar\nprecipitation', unit='in', colors='median'),
+        dict(series=d.precip, label='Flagstaff Nov–Mar\nprecipitation', unit='in', colors='median', fmt='.2f'),
         dict(series=d['A10 P2'], label='Athanasiadis P2\n(Nov–Mar mean)', unit=''),
         dict(series=d['SW trough'], label='Southwest trough\n500-hPa anomaly', unit='m', fmt='+.0f'),
     ]
