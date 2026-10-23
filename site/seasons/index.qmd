@@ -1,5 +1,5 @@
 ---
-title: "Monthly synopses"
+title: "Seasonal synopses"
 listing:
   contents: "*.qmd"
   sort: "date desc"
@@ -7,4 +7,3 @@ listing:
   fields: [date, title, description]
 ---
 
-The first synopsis (October 2026) is in preparation.

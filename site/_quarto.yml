@@ -6,7 +6,7 @@ project:
 
 website:
   title: "Flag weather retrospective"
-  description: "Storm events and monthly climate synopses for Flagstaff, Arizona"
+  description: "Storm events and seasonal climate synopses for Flagstaff, Arizona"
   site-url: https://daveedge1.github.io/Flag-weather/
   repo-url: https://github.com/DaveEdge1/Flag-weather
   repo-actions: [issue]
@@ -16,8 +16,8 @@ website:
         text: Home
       - href: events/index.qmd
         text: Events
-      - href: monthly/index.qmd
-        text: Monthly
+      - href: seasons/index.qmd
+        text: Seasons
       - href: pacific.qmd
         text: Pacific
       - href: network.qmd

@@ -10,6 +10,7 @@ import pandas as pd
 import xarray as xr
 from scipy import stats
 
+from . import jet
 from .sources import acis, era5_monthly, ersst
 
 CLIM = (1991, 2020)
@@ -115,6 +116,7 @@ class Pacific:
         pr = acis.precip_record()
         mon = pr.resample('MS').agg(lambda x: x.sum(min_count=int(len(x) * 0.9)))
         self.flg_winter = self._winter_series(mon).rename('Flagstaff Nov–Mar precip (in)')
+        self.jet = jet.standard(self.atm.u250, self.pna) if 'u250' in self.atm else None
         self.latest_atm = pd.Timestamp(self.atm.time.values[-1])
         self.latest_sst = pd.Timestamp(self.sst.time.values[-1])
         return self
@@ -221,3 +223,74 @@ class Pacific:
         if same_month:
             ref = ref[ref.index.month == pd.Timestamp(t).month]
         return float(stats.percentileofscore(ref.dropna(), s[t]))
+
+
+# ---- North Pacific jet and the Southwest trough -------------------------------------------------
+SW_TROUGH_BOX = dict(lat=(31, 41), lon=(231, 246))   # 31-41N, 129-114W: strongest 500-hPa correlation centre
+
+
+def nov_mar(s, first=FIRST):
+    """Nov-Mar mean of a monthly series, labelled by start year; complete winters only."""
+    s = s.copy()
+    s.index = pd.DatetimeIndex(s.index)
+    out = {}
+    for y in range(first, pd.Timestamp.now().year):
+        w = s.loc[f'{y}-11':f'{y + 1}-03']
+        if len(w) == 5 and w.notna().all():
+            out[y] = w.mean()
+    return pd.Series(out)
+
+
+def jet_winter_table(p):
+    """Nov-Mar means of jet indices, the Southwest trough index (full-sample and leave-one-out), ONI, PNA and
+    Flagstaff Nov-Mar precipitation."""
+    oni_dec = p.oni[p.oni.index.month == 12]
+    oni_dec.index = oni_dec.index.year
+    d = pd.DataFrame({
+        'precip': p.flg_winter, 'ONI': oni_dec, 'PNA': nov_mar(p.pna),
+        'A10 P1': nov_mar(p.jet['A10'].pcs.PC1), 'A10 P2': nov_mar(p.jet['A10'].pcs.PC2),
+        'NPJ extension': nov_mar(p.jet['W19'].pcs.PC1), 'NPJ poleward shift': nov_mar(p.jet['W19'].pcs.PC2),
+        'SW trough': nov_mar(_wmean(_box(p.atm_a.z500, SW_TROUGH_BOX)).to_series()),
+    }).loc[FIRST:].dropna()
+    d['SW trough (cross-validated)'] = _sw_trough_loo(p, d)
+    return d
+
+
+def _sw_trough_loo(p, d):
+    """Leave-one-out: for each winter, choose the 500-hPa grid point most negatively correlated with Flagstaff
+    precipitation in the other winters, then take that winter's mean over a 10 x 15 degree box around it."""
+    zw = winter_mean(p.atm_a.z500).sel(winter=d.index.values)
+    zd = zw.sel(latitude=slice(*DOMAIN['lat']), longitude=slice(*DOMAIN['lon']))
+    Z, P = zd.values.reshape(len(d), -1), d.precip.values
+    out = []
+    for i in range(len(d)):
+        m = np.ones(len(d), bool)
+        m[i] = False
+        Zc, Pc = Z[m] - Z[m].mean(0), P[m] - P[m].mean()
+        r = (Zc * Pc[:, None]).sum(0) / np.sqrt((Zc ** 2).sum(0) * (Pc ** 2).sum())
+        la, lo = np.unravel_index(np.nanargmin(r), zd.shape[1:])
+        lat0, lon0 = float(zd.latitude[la]), float(zd.longitude[lo])
+        b = dict(lat=(lat0 - 5, lat0 + 5), lon=(lon0 - 7.5, lon0 + 7.5))
+        out.append(float(_wmean(_box(zw.isel(winter=i), b))))
+    return out
+
+
+def jet_skill(d):
+    rows = []
+    X0 = np.c_[np.ones(len(d)), d.ONI]
+
+    def res(v):
+        return v - X0 @ np.linalg.lstsq(X0, v, rcond=None)[0]
+    for k in ['ONI', 'PNA', 'A10 P1', 'A10 P2', 'NPJ extension', 'NPJ poleward shift', 'SW trough (cross-validated)']:
+        r, pv = stats.pearsonr(d[k], d.precip)
+        row = dict(index=k, r=r, p=pv, r_ONI=d[k].corr(d.ONI), r_PNA=d[k].corr(d.PNA))
+        if k != 'ONI':
+            row['partial'], row['p_partial'] = stats.pearsonr(res(d[k].values), res(d.precip.values))
+        rows.append(row)
+    return pd.DataFrame(rows).set_index('index')
+
+
+def r2(d, cols):
+    X = np.c_[np.ones(len(d)), d[cols]]
+    b = np.linalg.lstsq(X, d.precip, rcond=None)[0]
+    return float(1 - ((d.precip - X @ b) ** 2).sum() / ((d.precip - d.precip.mean()) ** 2).sum())

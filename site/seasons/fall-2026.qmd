@@ -1,0 +1,124 @@
+---
+title: "Fall 2026"
+date: 2026-09-01
+description: "In progress. Part 1: record-warm water off Baja California and the tropical-storm rain of September–October."
+categories: [In progress]
+---
+
+```{python}
+import sys
+sys.path.insert(0, '../..')
+import matplotlib.pyplot as plt
+import pandas as pd
+from flagweather.baja import Baja
+from flagweather.figures import baja as figs
+
+b = Baja(2026, storms=('Polo', 'Rachel')).load()
+jas = pd.date_range('2026-07-01', '2026-09-01', freq='MS')
+mt = b.month_table(jas)
+total, through, rank, nyrs = b.current_autumn_precip()
+h = b.history_stats()
+season = b.season_series()
+TYPES = {'HU': 'hurricane', 'TS': 'tropical storm', 'TD': 'tropical depression', 'DB': 'remnant disturbance',
+         'LO': 'remnant low'}
+```
+
+Fall here means September–November. This synopsis is being written as the season unfolds; later parts will cover the season's temperature and precipitation against normal, its events, and the atmospheric pattern.
+
+## Part 1: Warm water off Baja California
+
+```{python}
+#| output: asis
+sep = mt.loc['2026-09-01']
+print(f"Sea-surface temperatures off Baja California were the highest in the ERSSTv5 record since 1950 for each of "
+      f"July, August and September 2026. Averaged over 18–32°N, 122–108°W (the Pacific side of the peninsula and the "
+      f"Gulf of California), the anomaly relative to 1991–2020 was "
+      + ', '.join(f'{r.anom:+.2f} °C in {t:%B}' for t, r in mt.iterrows())
+      + f". The previous September record was {sep.prev_max:+.2f} °C in {int(sep.prev_year)}. "
+      f"Over the same period Flagstaff had its two largest rain events of the autumn, "
+      f"[September 27–30](../events/2026-09-27.qmd) and [October 9–13](../events/2026-10-09.qmd). Each coincided with an eastern Pacific tropical cyclone moving "
+      f"north over the warm water: Polo, then Rachel. "
+      f"The airport recorded {total:.2f} in from September 1 through {through:%B} {through.day}, already the "
+      f"{rank}{'st' if rank == 1 else 'nd' if rank == 2 else 'rd' if rank == 3 else 'th'} largest September–October "
+      f"total of {nyrs} years since 1950.")
+```
+
+```{python}
+#| fig-cap: "Shading: mean SST anomaly for July–September 2026 relative to 1991–2020 (ERSSTv5). Solid black contour: the 26 °C isotherm in September 2026; dashed: its 1991–2020 September position. Dotted box: the Baja box (18–32°N, 122–108°W). Lines and dots: NHC best tracks of Polo and Rachel (dark red: hurricane; orange: tropical storm; light: tropical depression). ★ Flagstaff."
+figs.sst_map(b, jas, pd.Timestamp('2026-09-01'))
+plt.show()
+```
+
+```{python}
+#| fig-cap: "July–September mean SST anomaly in the Baja box, 1950–2026 (relative to 1991–2020). 2026 in orange."
+figs.box_bars(b)
+plt.show()
+```
+
+### Sea-surface temperature under the storm tracks
+
+```{python}
+#| output: asis
+t = b.track_table()
+t = t[t.type.isin(['HU', 'TS', 'TD', 'DB', 'LO']) & (t.lat >= 23)].dropna(subset=['sst'])
+out = pd.DataFrame({
+    'Storm': t.storm, 'Time (UTC)': t.time.dt.strftime('%b %d %H:%M'),
+    'Position': [f'{la:.1f}°N {abs(lo):.1f}°W' for la, lo in zip(t.lat, t.lon)],
+    'Status': t.type.map(TYPES), 'Wind (kt)': t.vmax,
+    'SST (°C)': t.sst.map('{:.1f}'.format), '1991–2020 normal (°C)': t.normal.map('{:.1f}'.format),
+    'Difference (°C)': (t.sst - t.normal).map('{:+.1f}'.format),
+    'SST month': t.sst_month.dt.strftime('%b')})
+print(out.to_markdown(index=False))
+north = t[t.lat >= 23]
+print(f"\nThe table lists 12-hourly positions north of 23°N over water. Along them, SST was "
+      f"{north.sst.min():.1f}–{north.sst.max():.1f} °C, "
+      f"{(north.sst - north.normal).min():+.1f} to {(north.sst - north.normal).max():+.1f} °C relative to normal. "
+      f"Values are monthly means at the nearest 2° ERSSTv5 cell; October positions use September SST, the latest "
+      f"month available.")
+```
+
+```{python}
+#| output: asis
+iso = b.isotherm_lat(pd.Timestamp('2026-09-01'))
+print('Sea-surface temperatures of about 26 °C or more are generally needed to sustain a tropical cyclone. On the '
+      'Pacific side of the peninsula, the northernmost September SST of at least 26 °C was at '
+      + '; '.join(f'{r.obs:.0f}°N along {abs(lo)}°W (normal {r.normal:.0f}°N)' for lo, r in iso.iterrows())
+      + ' (solid and dashed contours above). The Gulf of California normally exceeds 26 °C in September.')
+```
+
+Polo was still a 100-kt hurricane at 25°N and a hurricane at 27°N before dissipating over Sonora; Rachel was still a tropical storm at 28.5°N, and its remnant reached southeastern California.
+
+Warm water does not steer storms. In both events a trough west of California turned the moisture plume toward Arizona; see the atmospheric setting on the [September 27–30](../events/2026-09-27.qmd) and [October 9–13](../events/2026-10-09.qmd) pages.
+
+### Has warm water off Baja meant a wet autumn before?
+
+```{python}
+#| fig-cap: "September SST anomaly in the Baja box against Flagstaff airport September–October precipitation, 1950–2025, with a least-squares line. 2026 (orange) uses precipitation reported so far."
+figs.history_scatter(b)
+plt.show()
+```
+
+```{python}
+#| output: asis
+print(f"- **Correlation, 1950–2025 (n = {h['n']}):** r = {h['r']:+.2f} (p = {h['p']:.2f}) between September Baja SST "
+      f"anomaly and Flagstaff September–October precipitation. For comparison, July–September ONI gives "
+      f"r = {h['r_oni']:+.2f}.\n"
+      f"- **Overlap with ENSO:** the Baja box correlates with July–September ONI at r = {h['r_baja_oni']:+.2f}. With ONI "
+      f"removed from both, the Baja–precipitation correlation is {h['r_partial']:+.2f} (p = {h['p_partial']:.2f}).\n"
+      f"- **Warmest fifth of Septembers (n = {h['n_top']}):** {h['top_above']} were followed by above-median "
+      f"September–October precipitation; their median was {h['top_median']:.2f} in, against {h['median']:.2f} in for "
+      f"all years. The driest of them was {h['driest_top']}, the {h['driest_top_rank']}"
+      f"{'st' if h['driest_top_rank'] == 1 else 'nd' if h['driest_top_rank'] == 2 else 'rd' if h['driest_top_rank'] == 3 else 'th'}"
+      f" warmest September, with {h['driest_top_val']:.2f} in.")
+```
+
+In the record, warm water off Baja has gone with modestly wetter autumns in Flagstaff, and much of that relationship is shared with El Niño. On its own it has not been enough: a wet autumn also needs storms in the eastern Pacific and a pattern that brings their moisture north.
+
+::: {.callout-note collapse="true"}
+## Notes and caveats
+
+- **Baseline:** anomalies are relative to 1991–2020. Long-term warming raises recent anomalies relative to earlier decades, so part of 2026's margin over earlier years reflects the trend; 2026 also exceeds the recent record years.
+- **Resolution:** ERSSTv5 is a 2°, monthly reconstruction. It does not resolve the narrow coastal upwelling zone or day-to-day changes under a storm.
+- **Precipitation:** Flagstaff airport, threaded station record from RCC-ACIS. The 2026 value is incomplete until October ends.
+- **Storm tracks:** NHC operational best-track files; final tracks are issued after the season.
+:::

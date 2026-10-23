@@ -1,4 +1,5 @@
-"""ERA5 monthly means (global, 1.5 deg): 500-hPa geopotential height and mean sea-level pressure, 1950-present.
+"""ERA5 monthly means (global, 1.5 deg): 500-hPa geopotential height, mean sea-level pressure and 250-hPa
+zonal wind, 1950-present.
 
 Cached by decade in data/era5_monthly/ (git-ignored); the current decade is re-fetched to pick up new months.
 """
@@ -27,6 +28,8 @@ def fetch(first_year=1950, refresh_current=True):
             ('z500', 'reanalysis-era5-pressure-levels-monthly-means',
              dict(variable=['geopotential'], pressure_level=['500'])),
             ('msl', 'reanalysis-era5-single-levels-monthly-means', dict(variable=['mean_sea_level_pressure'])),
+            ('u250', 'reanalysis-era5-pressure-levels-monthly-means',
+             dict(variable=['u_component_of_wind'], pressure_level=['250'])),
         ]:
             f = DIR / f'{name}_{years[0]}_{years[-1]}.nc'
             if f.exists() and not (current and refresh_current):
@@ -49,6 +52,8 @@ def load():
     m = cat('msl')
     ds = xr.Dataset({'z500': (z['z'].squeeze(drop=True) / 9.80665),
                      'msl': m['msl'] / 100.0})
+    if glob.glob(str(DIR / 'u250_*.nc')):
+        ds['u250'] = cat('u250')['u'].squeeze(drop=True)
     ds = ds.rename({'valid_time': 'time'})
     ds['time'] = pd.DatetimeIndex(ds.time.values).to_period('M').to_timestamp()
     ds = ds.assign_coords(longitude=ds.longitude % 360).sortby('longitude').sortby('latitude')

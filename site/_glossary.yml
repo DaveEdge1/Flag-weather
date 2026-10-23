@@ -133,3 +133,23 @@ terms:
     term: Analog years and pattern correlation
     def: "Analog years are past years with a similar state (here Nov–Jan ONI ≥ 1.5 °C). Pattern correlation is the area-weighted correlation between two anomaly maps; +1 means identical patterns, 0 unrelated."
     aliases: [analog years, analog, pattern correlation]
+  - id: npj
+    term: North Pacific jet (NPJ) and the subtropical jet
+    def: "The North Pacific jet is the band of strongest upper-level westerly wind leaving East Asia over the North Pacific. Its eastern end, the exit region, extends or retracts and shifts north or south from week to week. The subtropical jet is a lower-latitude branch; when it is displaced south and strengthened toward Baja California, storms are steered toward the Southwest."
+    aliases: [North Pacific jet, North Pacific Jet, NPJ, subtropical jet]
+  - id: eof
+    term: EOF and principal component (PC)
+    def: "Empirical orthogonal function analysis finds the spatial patterns that account for the most variance in a field. Each pattern (EOF) has a time series, its principal component, giving how strongly the pattern is present each month."
+    aliases: [EOF, EOFs, principal component, principal components]
+  - id: npj-phase
+    term: NPJ phase diagram
+    def: "A plot of the first two principal components of North Pacific 250-hPa zonal wind (Winters et al. 2019): PC1 measures jet extension (+) or retraction (−), PC2 a poleward (+) or equatorward (−) shift of the jet exit region."
+    aliases: [phase diagram, NPJ phase diagram]
+  - id: p2
+    term: Athanasiadis P2 pattern
+    def: "The second pattern of Pacific winter 250-hPa zonal wind variability in Athanasiadis, Wallace and Wettstein (2010). Its positive phase (as signed here) strengthens westerlies near 20–30°N toward Baja California and weakens them near 40°N, shifting the West Coast precipitation belt south. ENSO projects onto it."
+    aliases: [Athanasiadis P2, P2]
+  - id: sw-trough
+    term: Southwest trough index
+    def: "Nov–Mar mean 500-hPa height anomaly over 31–41°N, 129–114°W, just off California: the location most strongly correlated with Flagstaff winter precipitation. Negative values mean lower heights (troughing) upstream of Arizona."
+    aliases: [Southwest trough]

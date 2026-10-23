@@ -1,8 +1,8 @@
 # Flag weather retrospective
 
-Storm events and monthly climate synopses for Flagstaff, Arizona: https://daveedge1.github.io/Flag-weather/
+Storm events and seasonal climate synopses for Flagstaff, Arizona: https://daveedge1.github.io/Flag-weather/
 
-Each **event page** pairs rainfall across the City of Flagstaff gauge network (and nearby SNOTEL sites) with ERA5 maps of moisture transport (IVT), the 250-hPa jet and 500-hPa heights. Each **monthly synopsis** compares temperature and precipitation with normal and links the month's anomalies to its events and to climate indices.
+Each **event page** pairs rainfall across the City of Flagstaff gauge network (and nearby SNOTEL sites) with ERA5 maps of moisture transport (IVT), the 250-hPa jet and 500-hPa heights. Each **seasonal synopsis** compares temperature and precipitation with normal and links the season's anomalies to its events and to the ocean and atmosphere patterns behind them.
 
 ## Layout
 

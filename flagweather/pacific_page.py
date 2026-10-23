@@ -79,11 +79,54 @@ def winter_table(p, years):
             v = p.flg_winter[y]
             rows.append({'Winter': f'{y}–{str(y + 1)[2:]}', 'Nov–Jan ONI (°C)': f'{p.oni.get(pd.Timestamp(y, 12, 1)):+.2f}',
                          'Flagstaff Nov–Mar (in)': f'{v:.2f}', '% of 1950–present mean': f'{100 * v / clim.mean():.0f}'})
-    return pd.DataFrame(rows).to_markdown(index=False)
+    return pd.DataFrame(rows).to_markdown(index=False, disable_numparse=True)
 
 
 def index_table(p):
     t = p.index_table()
     t['r'] = t.r.map('{:+.2f}'.format)
     t['p'] = t.p.map(lambda v: '< 0.001' if v < 0.001 else f'{v:.3f}')
-    return t[['r', 'p', 'n', 'years']].rename(columns={'r': 'r with Flagstaff Nov–Mar precip'}).to_markdown()
+    return t[['r', 'p', 'n', 'years']].rename(columns={'r': 'r with Flagstaff Nov–Mar precip'}).to_markdown(disable_numparse=True)
+
+
+# ---- North Pacific jet -----------------------------------------------------------------------------
+def npj_regime(pc1, pc2):
+    """Regime by the dominant component (quadrants bounded by the diagonals); 'near the origin' inside the
+    unit circle."""
+    if np.hypot(pc1, pc2) < 1:
+        return 'near the origin'
+    if abs(pc1) >= abs(pc2):
+        return 'jet extension' if pc1 > 0 else 'jet retraction'
+    return 'poleward shift' if pc2 > 0 else 'equatorward shift'
+
+
+def jet_current(p):
+    w = p.jet['W19'].pcs.dropna()
+    a = p.jet['A10'].pcs.dropna()
+    lines = []
+    for t, r in w.iloc[-3:].iterrows():
+        season = '' if t.month in (9, 10, 11, 12, 1, 2, 3, 4, 5) else ' (outside the Sep–May season of the EOFs)'
+        lines.append(f'{t:%B %Y}: PC1 {r.PC1:+.2f}, PC2 {r.PC2:+.2f}, {npj_regime(r.PC1, r.PC2)}{season}')
+    djfm = a[a.index.month.isin([12, 1, 2, 3])]
+    yw = djfm.index[-1].year if djfm.index[-1].month <= 3 else djfm.index[-1].year + 1
+    wmean = djfm.loc[f'{yw - 1}-12':f'{yw}-03'].PC2.mean()
+    out = ['- **North Pacific jet (Winters et al. EOFs), last three months:** ' + '; '.join(lines) + '.',
+           f'- **Athanasiadis P2** is defined for December–March. Its most recent Dec–Mar mean ({yw - 1}–{str(yw)[2:]}) '
+           f'was {wmean:+.2f}; the next value will be available after December {p.latest_atm.year}.']
+    return '\n'.join(out)
+
+
+def jet_table(skill):
+    names = {'ONI': 'ONI (Nov–Jan)', 'PNA': 'PNA', 'A10 P1': 'Athanasiadis P1 (≈ PNA)',
+             'A10 P2': 'Athanasiadis P2 (+: southward-displaced subtropical jet)',
+             'NPJ extension': 'NPJ EOF1 (+: jet extension)', 'NPJ poleward shift': 'NPJ EOF2 (+: poleward shift)',
+             'SW trough (cross-validated)': 'Southwest trough (cross-validated)'}
+    t = pd.DataFrame({
+        'r with Flagstaff precip': skill.r.map('{:+.2f}'.format),
+        'p': skill.p.map(lambda v: '< 0.001' if v < 0.001 else f'{v:.3f}'),
+        'r with ONI': skill.r_ONI.map('{:+.2f}'.format),
+        'r with PNA': skill.r_PNA.map('{:+.2f}'.format),
+        'partial r, ONI removed': skill.partial.map(lambda v: '—' if pd.isna(v) else f'{v:+.2f}'),
+    })
+    t.index = [names[i] for i in t.index]
+    return t.to_markdown(disable_numparse=True)
