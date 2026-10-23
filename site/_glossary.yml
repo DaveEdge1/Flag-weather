@@ -93,3 +93,43 @@ terms:
     term: Shaded relief, 3DEP and NHD
     def: "Gauge maps show terrain as shaded relief computed from the USGS 3D Elevation Program (3DEP) digital elevation model, with 200-m contours, streams from the USGS National Hydrography Dataset (NHD) and highways from Census TIGER."
     aliases: [shaded relief, USGS 3DEP, USGS NHD]
+  - id: enso
+    term: El Niño–Southern Oscillation (ENSO)
+    def: "The coupled ocean–atmosphere cycle of the tropical Pacific. El Niño is its warm phase (above-normal sea-surface temperature in the central and eastern equatorial Pacific); La Niña is its cool phase."
+    aliases: [El Niño, La Niña, ENSO]
+  - id: oni
+    term: Oceanic Niño Index (ONI) and Niño3.4
+    def: "Niño3.4 is the sea-surface temperature anomaly averaged over 5°S–5°N, 170°W–120°W. NOAA's ONI is its 3-month running mean; NOAA calls an El Niño weak at ≥ 0.5 °C, moderate ≥ 1.0, strong ≥ 1.5 and very strong ≥ 2.0."
+    aliases: [ONI, Niño3.4, Oceanic Niño Index]
+  - id: pdo
+    term: Pacific Decadal Oscillation (PDO)
+    def: "The leading pattern of North Pacific (north of 20°N) sea-surface temperature variability. Positive PDO: cool central North Pacific and warm water along the North American coast; negative PDO: the reverse."
+    aliases: [PDO, Pacific Decadal Oscillation]
+  - id: pna
+    term: Pacific–North American pattern (PNA)
+    def: "A pattern of 500-hPa height anomalies over the North Pacific and North America. Positive PNA: low heights near the Aleutians and southeastern US, high heights over western Canada; negative PNA: the reverse, with a trough over the western US."
+    aliases: [PNA, Pacific–North American pattern]
+  - id: aleutian-low
+    term: Aleutian Low
+    def: "The semi-permanent area of low sea-level pressure over the North Pacific near the Aleutian Islands, strongest in winter. Here its centre is the lowest monthly mean sea-level pressure over 30–65°N, 150°E–130°W."
+    aliases: [Aleutian Low]
+  - id: npi
+    term: North Pacific Index (NPI)
+    def: "Area-weighted mean sea-level pressure over 30–65°N, 160°E–140°W (Trenberth and Hurrell 1994); a measure of Aleutian Low strength. Lower values mean a deeper Aleutian Low."
+    aliases: [North Pacific Index, NPI]
+  - id: nph
+    term: North Pacific High
+    def: "The semi-permanent subtropical high-pressure area over the northeastern Pacific, strongest and farthest north in summer. Here its centre is the highest monthly mean sea-level pressure over 15–50°N, 180–120°W."
+    aliases: [North Pacific High]
+  - id: sst
+    term: Sea-surface temperature (SST) anomaly
+    def: "Departure of ocean surface temperature from its 1991–2020 mean for the same calendar month. This site uses NOAA ERSSTv5 (2° monthly reconstruction)."
+    aliases: [SST anomaly, SST anomalies, ERSSTv5, SST]
+  - id: teleconnection
+    term: Teleconnection
+    def: "A statistical and physical link between climate conditions in widely separated regions, such as between tropical Pacific sea-surface temperature and Southwest US winter precipitation."
+    aliases: [teleconnection, teleconnections]
+  - id: analog
+    term: Analog years and pattern correlation
+    def: "Analog years are past years with a similar state (here Nov–Jan ONI ≥ 1.5 °C). Pattern correlation is the area-weighted correlation between two anomaly maps; +1 means identical patterns, 0 unrelated."
+    aliases: [analog years, analog, pattern correlation]

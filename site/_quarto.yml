@@ -18,6 +18,8 @@ website:
         text: Events
       - href: monthly/index.qmd
         text: Monthly
+      - href: pacific.qmd
+        text: Pacific
       - href: network.qmd
         text: Network
       - href: methods.qmd

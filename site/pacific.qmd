@@ -1,0 +1,101 @@
+---
+title: "Pacific ocean and atmosphere"
+subtitle: "Seasonal state of the Pacific – Southwest North America teleconnections"
+---
+
+```{python}
+import sys
+sys.path.insert(0, '..')
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+from flagweather import pacific_page as text
+from flagweather.figures import pacific as figs
+from flagweather.pacific import Pacific
+
+p = Pacific().load()
+m1 = p.period(1)
+m3 = p.period(3)
+lab3 = f'{m3[0]:%b}–{m3[-1]:%b %Y}'
+Markdown(f'Through **{m3[-1]:%B %Y}** (latest month with both ERA5 and ERSSTv5). Anomalies are relative to '
+         f'1991–2020 monthly means.')
+```
+
+## Current state
+
+```{python}
+#| output: asis
+print(text.summary(p, m3))
+```
+
+```{python}
+#| fig-cap: "Monthly index values since 2020. ONI: 3-month running Niño3.4 anomaly (CPC), plotted at the centre month, dashed lines at ±0.5, 1.0, 1.5 and 2.0 °C. PDO: NCEI ERSSTv5. PNA: CPC. North Pacific Index: area-mean sea-level pressure over 30–65°N, 160°E–140°W (ERA5). North Pacific High: highest sea-level pressure over 15–50°N, 180–120°W (ERA5). Orange: positive; blue: negative."
+figs.index_timeseries(p, '2020-01-01')
+plt.show()
+```
+
+## Anomaly maps
+
+```{python}
+#| column: page
+#| fig-cap: "Sea-surface temperature (ERSSTv5), sea-level pressure and 500-hPa height (ERA5) anomalies for the latest month and the latest three months. L and H mark the Aleutian Low and North Pacific High centres (lowest and highest sea-level pressure in their search boxes). ★ Flagstaff."
+figs.anomaly_maps(p, [(f'{m1[0]:%B %Y}', m1), (lab3, m3)])
+plt.show()
+```
+
+## Strong El Niño analogs
+
+```{python}
+yrs = p.strong_el_nino_years(1.5)
+comp = p.analog_composite([t.month for t in m3], yrs)
+djf = p.analog_composite([12, 1, 2], yrs)
+```
+
+```{python}
+#| output: asis
+print(text.analog_text(p, m3, yrs, comp))
+```
+
+```{python}
+#| column: page
+#| fig-cap: "Left: anomalies for the latest three months. Centre: mean anomaly for the same three months in the analog years. Right: mean December–February anomaly of the analog winters. ★ Flagstaff."
+figs.analog_maps(p, lab3, m3, f'analog mean, {m3[0]:%b}–{m3[-1]:%b}', comp, 'analog mean, Dec–Feb', djf)
+plt.show()
+```
+
+```{python}
+#| output: asis
+print('**Flagstaff airport precipitation in the analog winters**\n')
+print(text.winter_table(p, yrs))
+```
+
+## Teleconnections with Flagstaff winter precipitation
+
+```{python}
+maps, n = p.correlation_maps()
+sig = 0.226 if n >= 75 else 0.25   # two-sided p = 0.05 for n ≈ 75
+```
+
+```{python}
+#| column: page
+#| fig-cap: "Correlation between Flagstaff airport Nov–Mar precipitation and Nov–Mar mean SST, sea-level pressure and 500-hPa height at each grid point, 1950–present. Dashed contour: |r| at the two-sided p = 0.05 level (no adjustment for autocorrelation or multiple testing). ★ Flagstaff."
+figs.correlation_maps(p, maps, n, sig)
+plt.show()
+```
+
+```{python}
+#| output: asis
+print('**Correlation of Nov–Mar index means with Flagstaff Nov–Mar precipitation**\n')
+print(text.index_table(p))
+```
+
+::: {.callout-note collapse="true"}
+## Definitions used on this page
+
+- **Analog years:** winters with ONI centred on December (Nov–Jan) at or above +1.5 °C since 1950.
+- **North Pacific Index (NPI):** area-weighted mean sea-level pressure over 30–65°N, 160°E–140°W (Trenberth and Hurrell 1994), computed from ERA5.
+- **Aleutian Low and North Pacific High centres:** the grid points of lowest (30–65°N, 150°E–130°W) and highest (15–50°N, 180–120°W) monthly mean sea-level pressure.
+- **Pattern correlation:** area-weighted correlation between two anomaly maps over 10°S–70°N, 120°E–60°W.
+- **Fixed baseline:** all anomalies are relative to 1991–2020 monthly means, including those of the analog years. Long-term warming therefore makes recent SST anomalies higher than those of earlier analogs.
+- **Gulf of Alaska box:** 45–60°N, 160–135°W. **Southwest US box:** 31–40°N, 115–105°W.
+:::

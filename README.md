@@ -12,6 +12,8 @@ flagweather/          Python package
   sources/            data access: gauges (City ALERT), snotel (NRCS AWDB), acis (airport), era5 (CDS), nhc (best track)
   event.py            event data, objective tags and summary numbers
   page.py             event-page text and tables
+  pacific.py          ENSO, PDO, PNA, Aleutian Low, North Pacific High diagnostics (Pacific page)
+  animation.py        6-hourly ERA5 frame player for event pages
   figures/            event maps, gauge maps and time series
 scripts/              make_event_page.py
 site/                 Quarto website (rendered by GitHub Actions to GitHub Pages)
@@ -36,6 +38,15 @@ quarto render site
 ```
 
 Start and end are UTC. Pages whose window ERA5 covers are marked Final and frozen (`site/_freeze/`, committed); others are Provisional and re-execute on each build, including the daily scheduled build.
+
+## Refreshing the Pacific page (monthly)
+
+ERA5 monthly means and ERSSTv5 are released a few days after each month ends.
+
+```
+python -c "from flagweather.sources import era5_monthly, ersst; era5_monthly.fetch(); ersst.fetch()"
+rm -rf site/_freeze/pacific && quarto render site/pacific.qmd
+```
 
 To preview the site: `quarto preview site`
 
