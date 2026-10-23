@@ -37,14 +37,8 @@ print(text.summary(p, m3))
 ### Indices
 
 ```{python}
-#| fig-cap: "Monthly values since 2020. ONI: 3-month running Niño3.4 anomaly (CPC), plotted at the centre month, dashed lines at ±0.5, 1.0, 1.5 and 2.0 °C. PDO: NCEI ERSSTv5. North Pacific High: highest sea-level pressure over 15–50°N, 180–120°W (ERA5). NPJ: projections onto the two leading EOFs of North Pacific 250-hPa zonal wind (Winters et al. 2019). Flagstaff: airport monthly mean temperature and total precipitation minus 1991–2020 normals. Orange: positive; blue: negative."
+#| fig-cap: "Monthly values since 2020. ONI: 3-month running Niño3.4 anomaly (CPC), plotted at the centre month, dashed lines at ±0.5, 1.0, 1.5 and 2.0 °C. PDO: NCEI ERSSTv5. North Pacific High: highest sea-level pressure over 15–50°N, 180–120°W (ERA5). North Pacific jet: monthly projection onto the Athanasiadis et al. (2010) P2 pattern of 250-hPa zonal wind (defined for December–March). Flagstaff: airport monthly mean temperature and total precipitation minus 1991–2020 normals. Orange: positive; blue: negative."
 figs.index_timeseries(p, '2020-01-01')
-plt.show()
-```
-
-```{python}
-#| fig-cap: "North Pacific Jet phase diagram for the last 12 months: monthly projections onto the two leading EOFs of Winters et al. (2019), standardized over 1979–2014. Shaded circle: magnitude below 1 (no dominant regime). Hollow markers: June–August, outside the season used to define the EOFs."
-figs.npj_phase_diagram(p, 12)
 plt.show()
 ```
 
@@ -109,11 +103,11 @@ print(text.index_table(p))
 
 ### The jet and the Southwest trough
 
-The strongest 500-hPa correlation lies just off California. Two published analyses of North Pacific 250-hPa zonal wind describe the related jet variability: the P2 pattern of Athanasiadis, Wallace and Wettstein (2010), which shifts the belt of West Coast precipitation north or south and onto which ENSO projects, and the poleward/equatorward shift mode of the North Pacific Jet (Winters, Keyser and Bosart 2019).
+The strongest 500-hPa correlation lies just off California. Athanasiadis, Wallace and Wettstein (2010) identified a pattern of North Pacific 250-hPa zonal wind, P2, that shifts the belt of West Coast precipitation north or south and onto which ENSO projects; it is reproduced here from ERA5 monthly means.
 
 ```{python}
 #| column: page
-#| fig-cap: "Regression of 250-hPa zonal wind on the standardized principal component of each shift pattern (shading), over each paper's domain (dotted box), with the climatological 250-hPa zonal wind for that season (contours, 30–60 m s⁻¹). ★ Flagstaff."
+#| fig-cap: "Regression of December–March 250-hPa zonal wind on the standardized P2 principal component (shading), over the EOF domain (dotted box), with the climatological December–March 250-hPa zonal wind (contours, 30–60 m s⁻¹). ★ Flagstaff."
 figs.jet_eof_maps(p)
 plt.show()
 ```
@@ -128,8 +122,6 @@ print(f"\n- **Variance explained (R²):** ONI {r2(jd, ['ONI']):.2f}; Athanasiadi
       f"Southwest trough (cross-validated) {r2(jd, ['SW trough (cross-validated)']):.2f}; all three "
       f"{r2(jd, ['ONI', 'A10 P2', 'SW trough (cross-validated)']):.2f}.")
 print(f"- **Trend check:** with both series detrended, the cross-validated Southwest trough correlation is {det:+.2f}.")
-print(f"- **P2 and the NPJ poleward shift** overlap: their Nov–Mar means correlate at "
-      f"r = {jd['A10 P2'].corr(jd['NPJ poleward shift']):+.2f}.")
 ```
 
 ```{python}
@@ -145,8 +137,7 @@ plt.show()
 - **North Pacific High centre:** the grid point of highest monthly mean sea-level pressure over 15–50°N, 180–120°W.
 - **Pattern correlation:** area-weighted correlation between two anomaly maps over 10°S–70°N, 120°E–60°W.
 - **Fixed baseline:** all anomalies are relative to 1991–2020 monthly means, including those of the analog years. Long-term warming therefore makes recent SST anomalies higher than those of earlier analogs.
-- **Jet EOFs:** monthly-mean ERA5 250-hPa zonal wind (1.5°), anomalies from the reference-period monthly means, √cos(latitude) weighting, PCs standardized over the reference period, all months projected onto the reference EOFs. Athanasiadis et al. (2010): Dec–Mar, 120°E–105°W, reference 1957–2002 (poleward limit 80°N assumed). Winters et al. (2019): Sep–May, 10–80°N, 100°E–120°W, reference 1979–2014; the paper used daily data, so the monthly version is an approximation. Signs: NPJ EOF1 + = extension, EOF2 + = poleward shift, P2 + = stronger westerlies near 25°N 145°W.
-- **NPJ regime:** the dominant component when the magnitude of (PC1, PC2) is at least 1; otherwise near the origin.
+- **Athanasiadis P2:** second EOF of monthly-mean ERA5 250-hPa zonal wind (1.5°) for Dec–Mar over 120°E–105°W, reference 1957–2002 (poleward limit 80°N assumed), with anomalies from the reference-period monthly means and √cos(latitude) weighting. The PC is standardized over the reference period and all months are projected onto the reference EOF. Sign: positive = stronger westerlies near 25°N 145°W (southward-displaced subtropical jet).
 - **Southwest trough index:** Nov–Mar 500-hPa height anomaly over 31–41°N, 129–114°W, the box around the strongest correlation with Flagstaff precipitation. Because the box was chosen from the same data, its skill is tested by leave-one-out cross-validation: for each winter, the box is re-chosen from the other winters.
 - **Gulf of Alaska box:** 45–60°N, 160–135°W. **Southwest US box:** 31–40°N, 115–105°W.
 - **Flagstaff:** NWS Flagstaff Pulliam Airport, threaded record from RCC-ACIS; normals 1991–2020.

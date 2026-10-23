@@ -1,13 +1,10 @@
 """North Pacific jet variability from ERA5 monthly 250-hPa zonal wind.
 
-Two published EOF definitions are reproduced on monthly means:
+The published EOF definition of Athanasiadis et al. is reproduced on monthly means:
   - Athanasiadis, Wallace & Wettstein (2010, J. Atmos. Sci.): Dec-Mar, Pacific sector 120E-105W, EOFs computed
     for 1957-2002; P1 ~ PNA, P2 = the 'previously unnoted' pattern tied to West Coast precipitation. The poleward
     limit of their sector is not stated in the text used here; 0-80N is assumed (they note that the 0-20N band
     must be included for P2 to emerge).
-  - Winters, Keyser & Bosart (2019, Wea. Forecasting) North Pacific Jet (NPJ) phase diagram: Sep-May, 10-80N,
-    100E-120W, 1979-2014; EOF1 = jet extension (+) / retraction (-), EOF2 = poleward (+) / equatorward (-) shift.
-    They used daily data; monthly means are an approximation.
 EOFs use anomalies from the reference-period monthly means, sqrt(cos(lat)) weighting, and PCs standardized over
 the reference period. All months are projected onto the reference EOFs.
 """
@@ -20,8 +17,6 @@ import xarray as xr
 DEFS = {
     'A10': dict(name='Athanasiadis et al. (2010)', months=(12, 1, 2, 3), lat=(0, 80), lon=(120, 255),
                 ref=(1957, 2002)),
-    'W19': dict(name='Winters et al. (2019) NPJ', months=(9, 10, 11, 12, 1, 2, 3, 4, 5), lat=(10, 80),
-                lon=(100, 240), ref=(1979, 2014)),
 }
 
 
@@ -66,12 +61,9 @@ def orient(e, mode, lat, lon, positive=True):
 
 
 def standard(u250, pna=None):
-    """Both EOF sets with the sign conventions used on the site:
-    W19 EOF1 + = jet extension; W19 EOF2 + = poleward shift; A10 P2 + = stronger westerlies near 25N, 145W
+    """EOFs with the sign conventions used on the site: A10 P2 + = stronger westerlies near 25N, 145W
     (southward-displaced subtropical jet); A10 P1 aligned to correlate positively with the PNA index."""
     e = {k: compute(u250, k) for k in DEFS}
-    orient(e['W19'], 1, 35, 195, True)
-    orient(e['W19'], 2, 47, 195, True)
     orient(e['A10'], 2, 25, 215, True)
     if pna is not None and e['A10'].pcs.PC1.corr(pna.reindex(e['A10'].pcs.index)) < 0:
         e['A10'].pcs['PC1'] *= -1

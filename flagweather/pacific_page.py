@@ -45,11 +45,13 @@ def summary(p, months3):
     h = p.nph.loc[t]
     lines.append(f'- **North Pacific High ({mon}):** highest sea-level pressure in the subtropical box was {h.p:.0f} hPa '
                  f'at {h.lat:.0f}°N {_lon(h.lon)} ({h.p_anom:+.1f} hPa relative to the {t:%B} mean).')
-    w = p.jet['W19'].pcs.dropna()
-    jt = w.index[-1]
-    lines.append(f'- **North Pacific jet ({jt:%B %Y}):** extension index {w.PC1.iloc[-1]:+.2f}, poleward-shift index '
-                 f'{w.PC2.iloc[-1]:+.2f} ({npj_regime(w.PC1.iloc[-1], w.PC2.iloc[-1])}); the last 12 months are in the '
-                 f'phase diagram below.')
+    a2 = p.jet['A10'].pcs.PC2.dropna()
+    at = a2.index[-1]
+    djfm = a2[a2.index.month.isin([12, 1, 2, 3])]
+    yw = djfm.index[-1].year if djfm.index[-1].month <= 3 else djfm.index[-1].year + 1
+    lines.append(f'- **North Pacific jet, Athanasiadis P2:** {a2.iloc[-1]:+.2f} in {at:%B %Y} (positive: '
+                 f'southward-displaced subtropical jet). The pattern is defined for December–March; its most recent '
+                 f'Dec–Mar mean ({yw - 1}–{str(yw)[2:]}) was {djfm.loc[f"{yw - 1}-12":f"{yw}-03"].mean():+.2f}.')
     f = p.flg_monthly.dropna(subset=['tavg', 'pcpn'])
     ft = f.index[-1]
     f3 = f.iloc[-3:]
@@ -95,35 +97,8 @@ def index_table(p):
 
 
 # ---- North Pacific jet -----------------------------------------------------------------------------
-def npj_regime(pc1, pc2):
-    """Regime by the dominant component (quadrants bounded by the diagonals); 'near the origin' inside the
-    unit circle."""
-    if np.hypot(pc1, pc2) < 1:
-        return 'near the origin'
-    if abs(pc1) >= abs(pc2):
-        return 'jet extension' if pc1 > 0 else 'jet retraction'
-    return 'poleward shift' if pc2 > 0 else 'equatorward shift'
-
-
-def jet_current(p):
-    w = p.jet['W19'].pcs.dropna()
-    a = p.jet['A10'].pcs.dropna()
-    lines = []
-    for t, r in w.iloc[-3:].iterrows():
-        season = '' if t.month in (9, 10, 11, 12, 1, 2, 3, 4, 5) else ' (outside the Sep–May season of the EOFs)'
-        lines.append(f'{t:%B %Y}: PC1 {r.PC1:+.2f}, PC2 {r.PC2:+.2f}, {npj_regime(r.PC1, r.PC2)}{season}')
-    djfm = a[a.index.month.isin([12, 1, 2, 3])]
-    yw = djfm.index[-1].year if djfm.index[-1].month <= 3 else djfm.index[-1].year + 1
-    wmean = djfm.loc[f'{yw - 1}-12':f'{yw}-03'].PC2.mean()
-    out = ['- **North Pacific jet (Winters et al. EOFs), last three months:** ' + '; '.join(lines) + '.',
-           f'- **Athanasiadis P2** is defined for December–March. Its most recent Dec–Mar mean ({yw - 1}–{str(yw)[2:]}) '
-           f'was {wmean:+.2f}; the next value will be available after December {p.latest_atm.year}.']
-    return '\n'.join(out)
-
-
 def jet_table(skill):
     names = {'ONI': 'ONI (Nov–Jan)', 'A10 P2': 'Athanasiadis P2 (+: southward-displaced subtropical jet)',
-             'NPJ extension': 'NPJ EOF1 (+: jet extension)', 'NPJ poleward shift': 'NPJ EOF2 (+: poleward shift)',
              'SW trough (cross-validated)': 'Southwest trough (cross-validated)'}
     t = pd.DataFrame({
         'r with Flagstaff precip': skill.r.map('{:+.2f}'.format),

@@ -141,10 +141,7 @@ terms:
     term: EOF and principal component (PC)
     def: "Empirical orthogonal function analysis finds the spatial patterns that account for the most variance in a field. Each pattern (EOF) has a time series, its principal component, giving how strongly the pattern is present each month."
     aliases: [EOF, EOFs, principal component, principal components]
-  - id: npj-phase
-    term: NPJ phase diagram
-    def: "A plot of the first two principal components of North Pacific 250-hPa zonal wind (Winters et al. 2019): PC1 measures jet extension (+) or retraction (−), PC2 a poleward (+) or equatorward (−) shift of the jet exit region."
-    aliases: [phase diagram, NPJ phase diagram]
+
   - id: p2
     term: Athanasiadis P2 pattern
     def: "The second pattern of Pacific winter 250-hPa zonal wind variability in Athanasiadis, Wallace and Wettstein (2010). Its positive phase (as signed here) strengthens westerlies near 20–30°N toward Baja California and weakens them near 40°N, shifting the West Coast precipitation belt south. ENSO projects onto it."

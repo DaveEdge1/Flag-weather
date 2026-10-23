@@ -248,7 +248,6 @@ def jet_winter_table(p):
     d = pd.DataFrame({
         'precip': p.flg_winter, 'ONI': oni_dec, 'PNA': nov_mar(p.pna),
         'A10 P1': nov_mar(p.jet['A10'].pcs.PC1), 'A10 P2': nov_mar(p.jet['A10'].pcs.PC2),
-        'NPJ extension': nov_mar(p.jet['W19'].pcs.PC1), 'NPJ poleward shift': nov_mar(p.jet['W19'].pcs.PC2),
         'SW trough': nov_mar(_wmean(_box(p.atm_a.z500, SW_TROUGH_BOX)).to_series()),
     }).loc[FIRST:].dropna()
     d['SW trough (cross-validated)'] = _sw_trough_loo(p, d)
@@ -280,7 +279,7 @@ def jet_skill(d):
 
     def res(v):
         return v - X0 @ np.linalg.lstsq(X0, v, rcond=None)[0]
-    for k in ['ONI', 'A10 P2', 'NPJ extension', 'NPJ poleward shift', 'SW trough (cross-validated)']:
+    for k in ['ONI', 'A10 P2', 'SW trough (cross-validated)']:
         r, pv = stats.pearsonr(d[k], d.precip)
         row = dict(index=k, r=r, p=pv, r_ONI=d[k].corr(d.ONI))
         if k != 'ONI':
