@@ -2,7 +2,7 @@
 title: "October 18–22, 2026"
 date: 2026-10-18
 description: "Network median 2.24 in (range 1.18–3.62 in)"
-categories: [Provisional]
+categories: [Snow, Provisional]
 execute:
   freeze: false
 ---
@@ -77,6 +77,14 @@ if ok and ev.final:
           'Black: 500-hPa height (60-m interval). Orange: 250-hPa wind 40, 55 and 70 m s⁻¹. ★ Flagstaff; '
           '✕ NHC best-track position. Lower strip: network median hourly rain, with the event window shaded '
           'and the map time marked in orange. Step with the buttons, slider or ← → keys; space plays and pauses.*\n')
+```
+
+```{python}
+#| output: asis
+notes = page.forecaster_notes('2026-10-18')
+if notes:
+    print('## What the forecasters said\n')
+    print(notes)
 ```
 
 ```{python}

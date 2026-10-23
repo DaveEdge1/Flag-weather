@@ -27,9 +27,10 @@ def sst_map(b, months, track_month):
     ax.contour(c.longitude, c.latitude, c, [26], colors=INK, linewidths=1.5, linestyles='--')
     ax.add_patch(Rectangle((BOX['lon'][0], BOX['lat'][0]), BOX['lon'][1] - BOX['lon'][0], BOX['lat'][1] - BOX['lat'][0],
                            fill=False, ec=INK, lw=1.2, ls=':'))
+    styles = {'Odalys': (0, (4, 2)), 'Polo': '-', 'Rachel': (0, (1, 1.5))}
     for name, g in b.tracks().items():
         x, y = g.lon % 360, g.lat
-        ax.plot(x, y, color=INK, lw=1, zorder=4)
+        ax.plot(x, y, color=INK, lw=1.3, ls=styles.get(name, '-'), zorder=4, label=name)
         for t in ('TD', 'TS', 'HU'):
             m = g.type == t
             ax.scatter(x[m], y[m], s=22, color=TYPE_COLOR[t], edgecolor=INK, lw=0.4, zorder=5)
@@ -41,6 +42,7 @@ def sst_map(b, months, track_month):
         ax.contour(lsm.longitude % 360, lsm.latitude, lsm, [0.5], colors='#3a3936', linewidths=0.8, zorder=3)
     except Exception:
         pass
+    ax.legend(title='Track', frameon=False, fontsize=8.5, title_fontsize=8.5, loc='lower left')
     ax.plot(360 - 111.65, 35.2, marker='*', color=INK, ms=12, mec=SURF, zorder=6)
     ax.annotate('Flagstaff', (360 - 111.65, 35.2), xytext=(6, 4), textcoords='offset points', fontsize=9, color=INK)
     ax.set_xlim(*DOM['lon'])

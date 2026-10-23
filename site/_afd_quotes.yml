@@ -1,0 +1,51 @@
+# Excerpts from NWS Flagstaff Area Forecast Discussions (AFDFGZ), quoted verbatim, keyed by event page slug.
+# utc: product issuance time (from the WMO header), used for the Iowa Environmental Mesonet archive link.
+2026-09-23:
+  - utc: '202609230956'
+    local: 'Sep 23, 2:56 AM MST'
+    text: "A significant plume of deep monsoon moisture continues to flow northward into New Mexico, with widespread rain and thunderstorms. Over northern Arizona, drier air remains for much of Coconino/Yavapai counties early this morning, with dewpoints in the 30s/40s."
+  - utc: '202609231914'
+    local: 'Sep 23, 12:14 PM MST'
+    text: "Moisture continues to stream into Arizona, as deep and layered southwest flow persists over the southwest United States. The bulk of the moisture resides in New Mexico, but outflows are pushing higher dew points into portions of eastern, southern and central Arizona this afternoon."
+2026-09-27:
+  - utc: '202609250516'
+    local: 'Sep 24, 10:16 PM MST'
+    text: "Moisture associated with two tropical cyclones (Hurricane Polo forecast to be off the southern Baja at this time and TS Odalys much farther west) will be pulled northeastward into the southwest United States in advance of this trough."
+  - utc: '202609262023'
+    local: 'Sep 26, 1:23 PM MST'
+    text: "Despite the fact the tropical moisture is coming from two tropical cyclones to the south, neither one of these circulations will actually make it up into Arizona."
+  - utc: '202609281843'
+    local: 'Sep 28, 11:43 AM MST'
+    text: "Current satellite imagery show a plume of moisture originating from the remnants of Odalys moving across northern Arizona. Meanwhile, Hurricane Polo is centered of the west coast of Southern Baja California."
+  - utc: '202609292103'
+    local: 'Sep 29, 2:03 PM MST'
+    text: "Arizona remains under a very dynamic weather pattern today with upper level low pressure centered over western Arizona and moisture from Hurricane Polo streaming northward."
+  - utc: '202609300912'
+    local: 'Sep 30, 2:12 AM MST'
+    text: "Water vapor satellite imagery show the upper-level low pressure centered over central Arizona and moving eastward, with moisture from the remnants of Polo now mostly being lifted into eastern New Mexico and western Texas."
+2026-10-09:
+  - utc: '202610080942'
+    local: 'Oct 8, 2:42 AM MST'
+    text: "As the trough digs south, it will interact with what will become the remnants of TS Rachel."
+  - utc: '202610101748'
+    local: 'Oct 10, 10:48 AM MST'
+    text: "Tropical Storm Rachel, about 500 miles southwest of San Diego as of 8 AM MST, is quickly moving northward as it begins to be pulled northward by an upper-level low off the California coast."
+  - utc: '202610111001'
+    local: 'Oct 11, 3:01 AM MST'
+    text: "After making landfall earlier this evening, the remnants of Tropical Storm Rachel are moving towards the north- northeast early this morning before exiting into Utah this afternoon. … With a continued strong southerly flow, moisture has continued to advect into the region and have left ripe conditions with the potential for heavy rain through today."
+  - utc: '202610111825'
+    local: 'Oct 11, 11:25 AM MST'
+    text: "Moisture from Hurricane Rachel has moved into much of northern Arizona this morning, with PWAT values near or exceeding daily record levels."
+2026-10-18:
+  - utc: '202610180903'
+    local: 'Oct 18, 2:03 AM MST'
+    text: "A southerly moisture surge is currently underway, somewhat enhanced by continued active tropical cyclone activity in the Eastern Pacific."
+  - utc: '202610191940'
+    local: 'Oct 19, 12:40 PM MST'
+    text: "On Wednesday and Thursday, the West Coast low shifts eastward toward northern Arizona allowing deep subtropical moisture to push into the area from the south. Some of this incoming moisture will be assocaited with what is currently Tropical Storm Trudy centered south of the Baja Peninsula."
+  - utc: '202610202147'
+    local: 'Oct 20, 2:47 PM MST'
+    text: "Some of this moisture is left over from post-tropical cyclone Trudy and is enhanced by the continued active tropical activity in the eastern Pacific."
+  - utc: '202610221000'
+    local: 'Oct 22, 3:00 AM MST'
+    text: "This system is pulling a rich subtropical moisture plume into the state, yielding record amounts of atmospheric moisture for this time of year."

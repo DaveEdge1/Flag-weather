@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from .config import AR_IVT, TC_RADIUS_KM
+from .config import AR_IVT, ROOT, TC_RADIUS_KM
 from .event import JET_RADIUS_KM, LOW_RADIUS_KM, TROUGH_WEST
 
 MST = pd.Timedelta('7h')
@@ -181,3 +181,21 @@ def snotel_table(ev):
         'Max snow depth (in)': s.snwd_max.map('{:.0f}'.format),
     })
     return t.to_markdown()
+
+
+AFD_FILE = ROOT / 'site' / '_afd_quotes.yml'
+AFD_URL = 'https://mesonet.agron.iastate.edu/wx/afos/p.php?pil=AFDFGZ&e={utc}'
+
+
+def forecaster_notes(*slugs):
+    """Markdown list of NWS Flagstaff Area Forecast Discussion excerpts for the given event slugs."""
+    import yaml
+    q = {str(k): v for k, v in (yaml.safe_load(AFD_FILE.read_text(encoding='utf-8')) or {}).items()}  # keys parse as dates
+    items = sorted((it for s in slugs for it in q.get(s, [])), key=lambda it: it['utc'])
+    if not items:
+        return ''
+    lines = ['The National Weather Service office in Flagstaff discussed the moisture source in its Area Forecast '
+             'Discussions as the event unfolded. Excerpts, quoted verbatim (links to the Iowa Environmental '
+             'Mesonet archive):\n']
+    lines += [f'- **{it["local"]}** ([AFD]({AFD_URL.format(utc=it["utc"])})): "{it["text"]}"' for it in items]
+    return '\n'.join(lines)

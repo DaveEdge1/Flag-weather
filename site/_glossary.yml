@@ -153,3 +153,11 @@ terms:
     term: Southwest trough index
     def: "Nov–Mar mean 500-hPa height anomaly over 31–41°N, 129–114°W, just off California: the location most strongly correlated with Flagstaff winter precipitation. Negative values mean lower heights (troughing) upstream of Arizona."
     aliases: [Southwest trough]
+  - id: afd
+    term: Area Forecast Discussion (AFD)
+    def: "A technical discussion issued several times a day by each National Weather Service forecast office explaining the reasoning behind its forecast. Excerpts on this site come from the Flagstaff office (AFDFGZ), via the Iowa Environmental Mesonet archive."
+    aliases: [Area Forecast Discussion, Area Forecast Discussions, AFD]
+  - id: pwat
+    term: Precipitable water (PWAT)
+    def: "The total water vapour in a column of the atmosphere, expressed as the depth of liquid water (in inches or mm) if it all condensed. Equivalent to ERA5 total column water vapour."
+    aliases: [PWAT, PWATs, precipitable water]

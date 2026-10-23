@@ -96,6 +96,14 @@ if ok and ev.final:
 
 ```{{python}}
 #| output: asis
+notes = page.forecaster_notes('{slug}')
+if notes:
+    print('## What the forecasters said\\n')
+    print(notes)
+```
+
+```{{python}}
+#| output: asis
 if ok:
     print('## Climate context\\n')
     print(page.climate(ev))

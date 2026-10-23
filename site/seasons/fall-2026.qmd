@@ -13,7 +13,7 @@ import pandas as pd
 from flagweather.baja import Baja
 from flagweather.figures import baja as figs
 
-b = Baja(2026, storms=('Polo', 'Rachel')).load()
+b = Baja(2026, storms=('Odalys', 'Polo', 'Rachel')).load()
 jas = pd.date_range('2026-07-01', '2026-09-01', freq='MS')
 mt = b.month_table(jas)
 total, through, rank, nyrs = b.current_autumn_precip()
@@ -36,15 +36,16 @@ print(f"Sea-surface temperatures off Baja California were the highest in the ERS
       + ', '.join(f'{r.anom:+.2f} °C in {t:%B}' for t, r in mt.iterrows())
       + f". The previous September record was {sep.prev_max:+.2f} °C in {int(sep.prev_year)}. "
       f"Over the same period Flagstaff had its two largest rain events of the autumn, "
-      f"[September 27–30](../events/2026-09-27.qmd) and [October 9–13](../events/2026-10-09.qmd). Each coincided with an eastern Pacific tropical cyclone moving "
-      f"north over the warm water: Polo, then Rachel. "
+      f"[September 27–30](../events/2026-09-27.qmd) and [October 9–13](../events/2026-10-09.qmd). National Weather Service forecasters in Flagstaff attributed the "
+      f"moisture in both to eastern Pacific tropical cyclones: in late September first the remnants of Odalys "
+      f"and then Polo, and in October Rachel (see [What the forecasters said](#what-the-forecasters-said)). "
       f"The airport recorded {total:.2f} in from September 1 through {through:%B} {through.day}, already the "
       f"{rank}{'st' if rank == 1 else 'nd' if rank == 2 else 'rd' if rank == 3 else 'th'} largest September–October "
       f"total of {nyrs} years since 1950.")
 ```
 
 ```{python}
-#| fig-cap: "Shading: mean SST anomaly for July–September 2026 relative to 1991–2020 (ERSSTv5). Solid black contour: the 26 °C isotherm in September 2026; dashed: its 1991–2020 September position. Dotted box: the Baja box (18–32°N, 122–108°W). Lines and dots: NHC best tracks of Polo and Rachel (dark red: hurricane; orange: tropical storm; light: tropical depression). ★ Flagstaff."
+#| fig-cap: "Shading: mean SST anomaly for July–September 2026 relative to 1991–2020 (ERSSTv5). Solid black contour: the 26 °C isotherm in September 2026; dashed: its 1991–2020 September position. Dotted box: the Baja box (18–32°N, 122–108°W). Lines and dots: NHC best tracks of Odalys (dashed), Polo (solid) and Rachel (dotted) (dark red: hurricane; orange: tropical storm; light: tropical depression). ★ Flagstaff."
 figs.sst_map(b, jas, pd.Timestamp('2026-09-01'))
 plt.show()
 ```
@@ -89,6 +90,26 @@ print('Sea-surface temperatures of about 26 °C or more are generally needed to 
 Polo was still a 100-kt hurricane at 25°N and a hurricane at 27°N before dissipating over Sonora; Rachel was still a tropical storm at 28.5°N, and its remnant reached southeastern California.
 
 Warm water does not steer storms. In both events a trough west of California turned the moisture plume toward Arizona; see the atmospheric setting on the [September 27–30](../events/2026-09-27.qmd) and [October 9–13](../events/2026-10-09.qmd) pages.
+
+### What the forecasters said
+
+```{python}
+#| output: asis
+from flagweather import page
+print(page.forecaster_notes('2026-09-27', '2026-10-09'))
+```
+
+```{python}
+#| output: asis
+od = b.tracks()['Odalys']
+print(f"The forecasters' account matches the ERA5 analysis on the event pages. In the September event, the first "
+      f"surge of moisture was traced by the forecasters to the remnants of Odalys, which stayed west of {abs(od.lon.max()):.0f}°W and "
+      f"south of {od.lat.max():.0f}°N, outside the Baja box; at the time of peak moisture transport over Flagstaff "
+      f"(September 28) ERA5 shows no continuous plume back to Polo. Polo's moisture followed on September 29 as the "
+      f"upper-level low crossed Arizona. In the October event, ERA5 shows the plume over Flagstaff continuous with "
+      f"Rachel at the time of peak moisture transport, and the forecasters reported precipitable water near or above "
+      f"daily records.")
+```
 
 ### Has warm water off Baja meant a wet autumn before?
 
