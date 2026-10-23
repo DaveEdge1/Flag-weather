@@ -9,7 +9,6 @@ website:
   description: "Storm events and seasonal climate synopses for Flagstaff, Arizona"
   site-url: https://daveedge1.github.io/Flag-weather/
   repo-url: https://github.com/DaveEdge1/Flag-weather
-  repo-actions: [issue]
   navbar:
     left:
       - href: index.qmd
@@ -27,6 +26,7 @@ website:
       - href: glossary.qmd
         text: Glossary
   page-footer:
+    right: "[Report an issue](https://github.com/DaveEdge1/Flag-weather/issues/new)"
     center: "Data: City of Flagstaff ALERT network · NRCS SNOTEL · NWS/RCC-ACIS · ERA5 (Copernicus) · NHC"
 
 filters:
