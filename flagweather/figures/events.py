@@ -19,33 +19,66 @@ def point_series(ds):
 
 
 def gauge_map(net, values, title, snotel_sites=None, snotel_values=None, unit='in'):
-    """Gauges (circle area proportional to value) over shaded relief, streams and highways;
-    SNOTEL triangles; airport square."""
-    fig, ax = plt.subplots(figsize=(7, 6.3), facecolor=SURF)
-    basemap.draw(ax)
-    halo = [patheffects.withStroke(linewidth=2.2, foreground=SURF)]
+    """Gauges colored by value (with color bar) and labelled, on a map cropped to the network, over shaded
+    relief, streams and highways; SNOTEL triangles (sites off the map are listed in a corner note); airport square."""
+    from adjustText import adjust_text
+    airport = (-111.666, 35.144)
     v = values.reindex(net.index)
-    scale = 350 / max(float(v.max()), 0.01)
-    ax.scatter(net.lon, net.lat, s=v.fillna(0) * scale, color=BLUE, alpha=0.7, edgecolor=INK, lw=0.5, zorder=3)
-    for gid, r in net.iterrows():
-        if pd.notna(v[gid]):
-            ax.annotate(f'{v[gid]:.2f}', (r.lon, r.lat), fontsize=7.5, color=INK, ha='center', va='center', zorder=4,
-                        path_effects=halo)
-    if snotel_sites is not None:
-        ax.scatter(snotel_sites.lon, snotel_sites.lat, marker='^', s=70, color=ORANGE, edgecolor=INK, lw=0.7, zorder=4)
+    ok = v.notna()
+    xs = list(net.lon) + [airport[0]]
+    ys = list(net.lat) + [airport[1]]
+    inside = []
+    if snotel_sites is not None:   # keep SNOTEL sites that lie close to the network on the map
         for t, r in snotel_sites.iterrows():
-            lab = r['name'] if snotel_values is None or pd.isna(snotel_values.get(r['name']))                 else f"{r['name']} {snotel_values[r['name']]:.1f}"
-            ax.annotate(lab, (r.lon, r.lat), xytext=(-8, 4), textcoords='offset points', fontsize=8.5, color=INK,
-                        ha='right', zorder=4, path_effects=halo)
-    ax.scatter([-111.666], [35.144], marker='s', s=40, color=INK, zorder=4)
-    ax.annotate('Airport', (-111.666, 35.144), xytext=(6, -10), textcoords='offset points', fontsize=8.5, color=INK,
-                zorder=4, path_effects=halo)
+            if min(net.lon) - 0.06 <= r.lon <= max(net.lon) + 0.06 and min(net.lat) - 0.06 <= r.lat <= max(net.lat) + 0.06:
+                inside.append(t)
+                xs.append(r.lon)
+                ys.append(r.lat)
+    pad_x, pad_y = 0.025, 0.018
+    ext = (min(xs) - pad_x, max(xs) + pad_x, min(ys) - pad_y, max(ys) + pad_y)
+    fig, ax = plt.subplots(figsize=(7, 7.6), facecolor=SURF)
+    basemap.draw(ax, extent=ext)
+    halo = [patheffects.withStroke(linewidth=3, foreground=SURF)]
+    vmax = max(float(v.max()), 0.01)
+    cmap = plt.get_cmap('YlGnBu')
+    sc = ax.scatter(net.lon[ok], net.lat[ok], c=v[ok], cmap=cmap, vmin=0, vmax=vmax, s=95, edgecolor=INK, lw=0.7,
+                    zorder=3)
+    ax.scatter(net.lon[~ok], net.lat[~ok], s=40, facecolor='none', edgecolor=MUTED, lw=0.8, zorder=3)
+    texts = [ax.text(r.lon, r.lat + 0.006, f'{v[gid]:.2f}', fontsize=10, color=INK, ha='center', va='center', zorder=5,
+                     fontweight='semibold', path_effects=halo) for gid, r in net[ok].iterrows()]
+    markers = [sc]
+    if snotel_sites is not None:
+        off = []
+        for t, r in snotel_sites.iterrows():
+            val = None if snotel_values is None else snotel_values.get(r['name'])
+            lab = r['name'] + ('' if val is None or pd.isna(val) else f' {val:.1f}')
+            if t in inside:
+                markers.append(ax.scatter([r.lon], [r.lat], marker='^', s=110, color=ORANGE, edgecolor=INK, lw=0.8,
+                                          zorder=4))
+                texts.append(ax.text(r.lon, r.lat + 0.006, lab, fontsize=10, color=INK, ha='center', va='center', zorder=5,
+                                     path_effects=halo))
+            else:
+                off.append(lab)
+        if off:
+            ax.text(0.015, 0.015, 'SNOTEL off map: ' + ', '.join(off), transform=ax.transAxes, fontsize=9.5,
+                    color=INK, ha='left', va='bottom', zorder=6,
+                    bbox=dict(boxstyle='round,pad=0.3', fc=SURF, ec=GRID, alpha=0.9))
+    markers.append(ax.scatter([airport[0]], [airport[1]], marker='s', s=60, color=INK, zorder=4))
+    texts.append(ax.text(airport[0], airport[1] - 0.006, 'Airport', fontsize=10, color=INK, ha='center', va='center', zorder=5,
+                         path_effects=halo))
     ax.set_aspect(1 / np.cos(np.deg2rad(35.2)))
-    ax.set_title(title, loc='left', color=INK)
+    ax.set_title(title, loc='left', color=INK, fontsize=12.5)
     ax.tick_params(colors=MUTED, labelsize=8)
     for sp in ax.spines.values():
         sp.set_color(GRID)
+    cb = fig.colorbar(sc, ax=ax, orientation='horizontal', fraction=0.035, pad=0.06, aspect=30, shrink=0.6)
+    cb.set_label(unit, color=INK, fontsize=10)
+    cb.ax.tick_params(labelsize=9, colors=INK)
+    cb.outline.set_edgecolor(GRID)
     fig.tight_layout()
+    px = [o for m in markers for o in m.get_offsets()]
+    adjust_text(texts, x=[q[0] for q in px], y=[q[1] for q in px], ax=ax, expand=(1.1, 1.25), expand_axes=False,
+                arrowprops=dict(arrowstyle='-', color=INK, lw=0.6))
     return fig
 
 

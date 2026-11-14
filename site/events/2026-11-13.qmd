@@ -37,7 +37,7 @@ if ok:
 ```
 
 ```{python}
-#| fig-cap: "Event rain total at each city and county gauge (circle area proportional to total, labels in inches) over shaded relief (USGS 3DEP), 200-m elevation contours, streams (USGS NHD) and highways (Census TIGER). Orange triangles: SNOTEL sites with event precipitation (in). Square: Flagstaff airport."
+#| fig-cap: "Event rain total at each city and county gauge (circle color and label show the total in inches; map cropped to the network) over shaded relief (USGS 3DEP), 200-m elevation contours, streams (USGS NHD) and highways (Census TIGER). Orange triangles: SNOTEL sites with event precipitation (in). Square: Flagstaff airport."
 if ok:
     figs.gauge_map(ev.net, ev.totals, 'Event rain total (in)', snotel.stations(list(SNOTEL)), ev.snotel_stats().precip)
     plt.show()

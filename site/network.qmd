@@ -29,7 +29,7 @@ except Exception as err:   # gauge server unreachable at build time
 ## Rain gauges
 
 ```{python}
-#| fig-cap: "City of Flagstaff and Coconino County ALERT rain gauges (circle area proportional to 30-day total, labels in inches), SNOTEL sites (triangles) and the Flagstaff airport (square)."
+#| fig-cap: "City of Flagstaff and Coconino County ALERT rain gauges (circle color and label show the 30-day total in inches), SNOTEL sites (triangles) and the Flagstaff airport (square)."
 if ok:
     gauge_map(net, net.last_P30D, '30-day rain total (in)', sno)
     plt.show()
