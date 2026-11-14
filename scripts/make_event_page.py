@@ -47,7 +47,7 @@ except Exception as err:   # a data source was unreachable at build time
 #| output: asis
 if ok:
     print('## Summary\\n')
-    print(page.narrative(ev))
+    print(page.summary(ev))
     print('\\n## Rain across the network\\n')
 ```
 

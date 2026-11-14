@@ -103,6 +103,113 @@ def narrative(ev):
     return ' '.join(out)
 
 
+WORDS = {'N': 'north', 'S': 'south', 'E': 'east', 'W': 'west'}
+
+
+def _dir_words(deg):
+    """Compass point in words, e.g. 'west-northwest'."""
+    c = _dir(deg)
+    if len(c) == 3:
+        return f'{WORDS[c[0]]}-{WORDS[c[1]]}{WORDS[c[2]]}'
+    return ''.join(WORDS[x] for x in c)
+
+
+def _mi(km):
+    return f'{round(km * 0.621371, -1):,.0f}'
+
+
+def _part(t):
+    h = (pd.Timestamp(t) - MST).hour
+    return ('overnight' if h < 5 else 'morning' if h < 12 else 'afternoon' if h < 17
+            else 'evening' if h < 21 else 'night')
+
+
+def _span(t0, t1):
+    """Local (MST) span, e.g. 'Saturday night, October 31, and Sunday evening, November 1'."""
+    a, b = pd.Timestamp(t0) - MST, pd.Timestamp(t1) - MST
+    def day(x, t):
+        p = _part(t)
+        return f'{p} {x:%A}' if p == 'overnight' else f'{x:%A} {p}'
+    if a.date() == b.date():
+        return f'{day(a, t0)} and {_part(t1)}, {a:%B} {a.day}'
+    return f'{day(a, t0)}, {a:%B} {a.day}, and {day(b, t1)}, {b:%B} {b.day}'
+
+
+def _tc_name(type_, name):
+    if type_ in ('DB', 'LO', 'EX'):
+        return f'the remnants of {name}'
+    return f'{TC_TYPES.get(type_, type_).title()} {name}'
+
+
+def plain_summary(ev):
+    """The event in plain language: when, how much, how unusual, and what caused it."""
+    n, a, sn = ev.network_stats(), ev.airport_stats(), ev.snotel_stats()
+    t0, t1 = ev.rain_core()
+    out = [f'Most of the rain fell between {_span(t0, t1)}, over about {_hours(t0, t1):.0f} hours.',
+           f'Rain gauges across Flagstaff caught a typical {n["median"]:.2f} inches, from {n["min"]:.2f} in at '
+           f'{n["min_site"]} to {n["max"]:.2f} in at {n["max_site"]}.']
+    days = f'{a["ndays"]} day{"s" * (a["ndays"] > 1)}'
+    ratio = a['precip'] / a['precip_normal'] if a['precip_normal'] else np.nan
+    s = f'The airport measured {a["precip"]:.2f} in'
+    if np.isfinite(ratio) and ratio >= 1.5:
+        s += f', about {ratio:.0f} times the normal for ' + (f'those {days}' if a['ndays'] > 1 else 'the day')
+    s += '.'
+    month = f'{ev.days[-1]:%B}'
+    if a['rank'] == 1:
+        s += f' That is the most for any {days} in {month} at the airport since records began in {a["first_year"]}.'
+    elif a['rank'] <= 10:
+        s += (f' Only {a["rank"] - 1} {month}{"s" * (a["rank"] > 2)} since {a["first_year"]} '
+              f'had a wetter {days}.')
+    out.append(s)
+    if a['snow'] > 0:
+        out.append(f'{a["snow"]:.1f} in of snow fell at the airport.')
+    elif sn.snwd_max.max() > 0:
+        out.append('Snow fell only at the highest mountain sites; in town it was rain.')
+    if a['tmin_dep'] >= 5:
+        out.append(f'Nights were mild for the season, about {a["tmin_dep"]:.0f} °F above normal.')
+    elif a['tmax_dep'] <= -5:
+        out.append(f'Days were cool, about {-a["tmax_dep"]:.0f} °F below normal.')
+
+    st = ev.atmos_setting()
+    if st is None:
+        for _, r in ev.tropical_cyclones().iterrows():
+            out.append(f'{_tc_name(r.type, r["name"])[0].upper()}{_tc_name(r.type, r["name"])[1:]} was about '
+                       f'{_mi(r.km)} miles away at its closest.')
+        out.append('Weather maps of what caused the storm will be added once the ERA5 reanalysis covers it, '
+                   'usually about a week afterwards.')
+        return ' '.join(out)
+    e = ev.era5_stats()
+    cl = st['closed_low']
+    steer = (f'an area of low pressure aloft centred about {_mi(cl["km"])} miles to the {_dir_words(cl["bearing"])}'
+             if cl else 'a trough of low pressure to the west' if st['trough_lon'] is not None
+             else 'the passing weather system')
+    src = f'from the {_dir_words(e["ivt_dir"])}'
+    if e['ivt_max'] >= AR_IVT and st['frac_ar'] >= 0.5:
+        out.append(f'The storm was fed by an atmospheric river, a long, narrow stream of moist air flowing {src}, '
+                   f'drawn north by {steer}. {100 * st["frac_ar"]:.0f}% of the rain fell while that stream '
+                   f'was overhead.')
+    elif e['ivt_max'] >= AR_IVT:
+        out.append(f'Moist air flowed {src}, drawn north by {steer}. For part of the storm it was strong enough to '
+                   f'count as an atmospheric river (a long, narrow stream of moist air), but most of the rain, '
+                   f'{100 * (1 - st["frac_ar"]):.0f}%, fell outside those hours.')
+    else:
+        out.append(f'Moist air flowing {src} was lifted by {steer}, but the flow of moisture stayed below '
+                   f'atmospheric-river strength.')
+    if e['ivt_max'] >= 2 * AR_IVT:
+        out.append(f'At its peak it carried about {e["ivt_max"] / AR_IVT:.1f} times the moisture flow that defines '
+                   f'an atmospheric river.')
+    for c in st['tc_connected']:
+        out.append(f'Part of that moisture came directly from {_tc_name(c["type"], c["name"])}, '
+                   f'about {_mi(c["km"])} miles to the {_dir_words(c["bearing"])}.')
+    return ' '.join(out)
+
+
+def summary(ev):
+    """Plain-language summary, then the technical summary in a collapsed callout."""
+    return (plain_summary(ev) + '\n\n::: {.callout-note collapse="true"}\n## Technical summary\n\n'
+            + narrative(ev) + '\n:::\n')
+
+
 def _vs(obs, ref, label):
     """'x in (p% of label)' when the reference is at least 2 in, otherwise 'x in (label y in)'."""
     if pd.notna(ref) and ref >= 2:
