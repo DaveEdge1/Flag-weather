@@ -158,7 +158,6 @@ EVENTS = [
     ('2026-10-09T12', '2026-10-14T06', 'Tropical Storm (later Hurricane) Rachel'),
     ('2026-10-18T12', '2026-10-22T18', 'Subtropical plume, partly from post-tropical Trudy'),
     ('2026-10-30T12', '2026-11-02T06', 'Subtropical plume from about 24°N; remnant monsoon moisture'),
-    ('2026-11-13T18', '2026-11-14T21', 'Weakening low over southern California, then a Great Basin trough'),
 ]
 f = Fall(2026, EVENTS).load()
 td = f.to_date()
@@ -244,7 +243,7 @@ print(f"**October 30 – November 1** was the season's largest storm. It came in
       f"overnight lows averaged {a['tmin_dep']:+.0f} °F against normal.")
 ```
 
-The [November 13–14](../events/2026-11-13.qmd) storm was small by comparison. Moisture from a weakening low over southern California was followed overnight by a second trough dropping south through the Great Basin. It brought a few tenths of an inch across the city and some snow on the highest terrain, with snow levels near 8,000 ft. NWS Flagstaff expects a colder system around November 17–18. The event page is provisional until ERA5 covers it.
+A smaller storm was still under way on November 13–14 as this was written. It will get its own event page once it is over and ERA5 covers it.
 
 ### The pattern: a Gulf of Alaska ridge and a run of cut-off lows
 
