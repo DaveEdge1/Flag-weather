@@ -1,7 +1,7 @@
 ---
 title: "Fall 2026"
 date: 2026-09-01
-description: "In progress. Part 1: record-warm water off Baja California and the tropical-storm rain of September–October."
+description: "In progress. Part 1: record-warm water off Baja California and the tropical-storm rain of September–October. Part 2: the wettest fall on record, the November 1 atmospheric river, and an El Niño the atmosphere has not yet followed."
 categories: [In progress]
 ---
 
@@ -23,7 +23,7 @@ TYPES = {'HU': 'hurricane', 'TS': 'tropical storm', 'TD': 'tropical depression',
          'LO': 'remnant low'}
 ```
 
-Fall here means September–November. This synopsis is being written as the season unfolds; later parts will cover the season's temperature and precipitation against normal, its events, and the atmospheric pattern.
+Fall here means September–November. This synopsis is being written as the season unfolds. [Part 1](#part-1-warm-water-off-baja-california) covers the warm water off Baja California behind the September–October tropical-storm rain. [Part 2](#part-2-the-wettest-fall-on-record) covers the season's precipitation and temperature against the record, its storms through mid-November, and the atmospheric pattern and ENSO state behind them.
 
 ## Part 1: Warm water off Baja California
 
@@ -142,4 +142,181 @@ In the record, warm water off Baja has gone with modestly wetter autumns in Flag
 - **Resolution:** ERSSTv5 is a 2°, monthly reconstruction. It does not resolve the narrow coastal upwelling zone or day-to-day changes under a storm.
 - **Precipitation:** Flagstaff airport, threaded station record from RCC-ACIS. The 2026 value is incomplete until October ends.
 - **Storm tracks:** NHC operational best-track files; final tracks are issued after the season.
+:::
+
+## Part 2: The wettest fall on record
+
+```{python}
+from flagweather import page
+from flagweather.event import Event
+from flagweather.fall import Fall, _ord as _o
+from flagweather.figures.style import BLUE, ORANGE, MUTED, clean
+
+EVENTS = [
+    ('2026-09-23T12', '2026-09-24T06', 'Monsoon moisture plume, mostly into New Mexico'),
+    ('2026-09-27T12', '2026-10-01T06', 'Remnants of Odalys, then Hurricane Polo'),
+    ('2026-10-09T12', '2026-10-14T06', 'Tropical Storm (later Hurricane) Rachel'),
+    ('2026-10-18T12', '2026-10-22T18', 'Subtropical plume, partly from post-tropical Trudy'),
+    ('2026-10-30T12', '2026-11-02T06', 'Subtropical plume from about 24°N; remnant monsoon moisture'),
+    ('2026-11-13T18', '2026-11-14T21', 'Weakening low over southern California, then a Great Basin trough'),
+]
+f = Fall(2026, EVENTS).load()
+td = f.to_date()
+nov1 = f.daily_ranks('2026-11-01')
+```
+
+### Precipitation and temperature
+
+```{python}
+#| output: asis
+th = td['through']
+print(f"Flagstaff airport recorded **{td['total']:.2f} in** from September 1 through {th:%B} {th.day}, against a "
+      f"1991–2020 normal of {td['normal']:.2f} in for those dates ({100 * td['total'] / td['normal']:.0f}% of normal). "
+      + (f"That is already more than any complete September–November in the record since {td['full_first']}; the "
+         f"previous wettest fall was {td['full_max_year']} with {td['full_max']:.2f} in, and the median since then is "
+         f"{td['full_median']:.2f} in. " if td['exceeds_full'] else
+         f"The wettest complete fall since {td['full_first']} is {td['full_max_year']} with {td['full_max']:.2f} in. ")
+      + f"Precipitation fell on {td['wet_days']} days, and {len(td['inch_days'])} days had an inch or more: "
+      + ', '.join(f"{d:%B} {d.day} ({v:.2f} in)" for d, v in td['inch_days'].items()) + ". "
+      f"November 1 alone brought {nov1['value']:.2f} in, the wettest November day in the airport record since "
+      f"{nov1['first']} and the {_o(nov1['rank_all'])} wettest day of any month.")
+print()
+print(f"The season has also been warm, averaging {td['tdep']:+.1f} °F against normal, and every storm so far has fallen "
+      f"as rain at the airport. No measurable snow has been recorded there this season, against a normal of "
+      f"{td['snow_normal']:.1f} in by {th:%B} {th.day}.")
+```
+
+```{python}
+#| output: asis
+print(f.month_table().to_markdown(index=False, disable_numparse=True))
+print('\n*Flagstaff airport (threaded record from RCC-ACIS). Normals 1991–2020. Ranks among all years with a '
+      'complete month since 1898.*')
+```
+
+```{python}
+#| fig-cap: "Cumulative precipitation at Flagstaff airport from September 1, 2026 (orange), the previous wettest falls (1972 and 1985, grey) and the 1950–2025 median (blue)."
+fig, ax = plt.subplots(figsize=(8, 4.2), facecolor='#fcfcfb')
+cum = f.cumulative([1972, 1985])
+x0 = pd.Timestamp('2026-09-01')
+for k, s in cum.items():
+    kw = (dict(color=ORANGE, lw=2.6, label='2026') if k == 2026 else
+          dict(color=BLUE, lw=1.6, label='Median, 1950–2025') if k == 'median' else
+          dict(color=MUTED, lw=1.3, label=str(k)))
+    ax.plot(x0 + pd.to_timedelta(s.index, 'D'), s.values, **kw)
+    if k in (1972, 1985):
+        ax.annotate(str(k), (x0 + pd.Timedelta(days=int(s.index[-1])), s.iloc[-1]), xytext=(4, 0),
+                    textcoords='offset points', va='center', color=MUTED, fontsize=9)
+ax.set_ylabel('Precipitation since September 1 (in)')
+ax.xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%b %d'))
+clean(ax)
+ax.legend(frameon=False, loc='upper left', fontsize=9)
+plt.show()
+```
+
+### The storms
+
+```{python}
+#| output: asis
+print(f.event_table().to_markdown(index=False, disable_numparse=True))
+print('\n*Network median: City of Flagstaff and Coconino County gauges over the event window. Airport: local-day total '
+      '(the latest day may not yet be reported). Peak IVT: ERA5 at the grid point nearest Flagstaff. Moisture source: '
+      'as described in NWS Flagstaff Area Forecast Discussions, quoted on each event page.*')
+```
+
+```{python}
+#| output: asis
+ev = Event('2026-10-30T12', '2026-11-02T06').load()
+n, a, s, e, sn = ev.network_stats(), ev.airport_stats(), ev.atmos_setting(), ev.era5_stats(), ev.snotel_stats()
+print(f"**October 30 – November 1** was the season's largest storm. It came in two rounds: a shortwave trough with "
+      f"thunderstorms on October 30, then, after a lull, an [atmospheric river](../events/2026-10-30.qmd) ahead of a "
+      f"deep trough that came ashore in central California. Across the city network the median total was "
+      f"{n['median']:.2f} in (range {n['min']:.2f}–{n['max']:.2f} in), and the airport's 3-day total was "
+      f"{a['precip']:.2f} in, the {_o(a['rank'])} largest 3-day total ending in November since {a['first_year']}. "
+      f"IVT over Flagstaff peaked at {e['ivt_max']:.0f} kg m⁻¹ s⁻¹ from the {page._dir(e['ivt_dir'])} early on "
+      f"November 1, about {e['ivt_max'] / 250:.1f} times the atmospheric-river threshold. "
+      f"{100 * s['frac_ar']:.0f}% of the network rain fell while IVT was at atmospheric-river strength. At the "
+      f"peak a closed 500-hPa low was centred at {s['closed_low']['lat']:.1f}°N {abs(s['closed_low']['lon']):.1f}°W, "
+      f"with {s['flow500_speed']:.0f} m s⁻¹ southwesterly flow at 500 hPa over Flagstaff. SNOTEL gauges caught "
+      + ', '.join(f"{v:.1f} in at {k}" for k, v in sn.precip.items())
+      + ". The storm fell on soils already saturated by the October rain. NWS Flagstaff reported stream gauges above "
+      "record stage south of the Mogollon Rim and a record flood stage on the Little Colorado River at Winslow. "
+      f"Snow levels stayed high: the airport's lowest temperature during the storm was {a['tmin']:.0f} °F, and "
+      f"overnight lows averaged {a['tmin_dep']:+.0f} °F against normal.")
+```
+
+The [November 13–14](../events/2026-11-13.qmd) storm was small by comparison. Moisture from a weakening low over southern California was followed overnight by a second trough dropping south through the Great Basin. It brought a few tenths of an inch across the city and some snow on the highest terrain, with snow levels near 8,000 ft. NWS Flagstaff expects a colder system around November 17–18. The event page is provisional until ERA5 covers it.
+
+### The pattern: a Gulf of Alaska ridge and a run of cut-off lows
+
+```{python}
+#| output: asis
+oc, se = f.month_anoms('2026-10-01'), f.month_anoms('2026-09-01')
+cl = f.cutoff_lows('2026-10-01', '2026-11-08T18')
+print(f"The monthly means do not show a persistent West Coast trough behind these storms. In October the 500-hPa "
+      f"height anomaly over the Gulf of Alaska was {oc['Gulf of Alaska']['z']:+.0f} m (the "
+      f"{_o(oc['Gulf of Alaska']['rank_high'])} highest October of {oc['Gulf of Alaska']['n']} since 1950; September: "
+      f"{se['Gulf of Alaska']['z']:+.0f} m, {_o(se['Gulf of Alaska']['rank_high'])} highest), with sea-level pressure "
+      f"{oc['GoA msl']:+.1f} hPa against normal. Off California, the October anomaly was only "
+      f"{oc['SW trough box']['z']:+.0f} m in the box most closely tied to Flagstaff winter precipitation (the "
+      f"Southwest trough index on the [Pacific page](../pacific.qmd)). Over the Southwest itself heights were above "
+      f"normal ({oc['Southwest US']['z']:+.0f} m in October, {se['Southwest US']['z']:+.0f} m in September), "
+      f"which matches the warm temperatures.")
+print()
+print(f"Instead, the rain came from individual troughs that broke off south of that ridge as cut-off lows. Between "
+      f"{cl['start']:%B} {cl['start'].day} and {cl['end']:%B} {cl['end'].day}, ERA5 had a closed 500-hPa low within "
+      f"25–42°N, 132–112°W (off California and over the Southwest) in {cl['n_with']} of {cl['n_times']} six-hourly "
+      f"analyses ({100 * cl['n_with'] / cl['n_times']:.0f}%). Cut-off lows move slowly. Each one west of California "
+      f"set up deep southerly flow that carried subtropical and tropical-cyclone moisture from the warm water off "
+      f"Baja (Part 1) north into Arizona, and the ridging between lows gave the dry, mild spells. This describes the "
+      f"season only: the frequency of such lows in other falls has not been computed here.")
+```
+
+```{python}
+#| column: page
+#| fig-cap: "Sea-surface temperature (ERSSTv5), sea-level pressure and 500-hPa height (ERA5) anomalies for October 2026 and September–October 2026, relative to 1991–2020. H marks the North Pacific High centre. ★ Flagstaff."
+from flagweather.figures import pacific as pfigs
+so = pd.DatetimeIndex(['2026-09-01', '2026-10-01'])
+pfigs.anomaly_maps(f.p, [('October 2026', so[1:]), ('September–October 2026', so)])
+plt.show()
+```
+
+### El Niño and the negative PDO
+
+```{python}
+#| output: asis
+en = f.enso()
+print(f"- **El Niño is strong and still growing.** The August–October ONI was {en['oni']:+.2f} °C, the highest for "
+      f"those months since {en['oni_first']} (previous highest: {en['oni_next']:+.2f} °C in {en['oni_next_year']}). "
+      f"Monthly Niño 3.4 (ERSSTv5) reached {en['nino34']:+.2f} °C in {en['nino34_t']:%B}.\n"
+      f"- **The North Pacific has not followed.** The PDO was {en['pdo']:+.2f} in {en['pdo_t']:%B} "
+      f"(September–October mean {en['pdo_so']:+.2f}), lower than {100 - en['pdo_pct']:.0f}% of Octobers since 1950, "
+      f"whereas the PDO is usually positive during a strong El Niño. The PNA was {en['pna']:+.2f} in {en['pna_t']:%B}. "
+      f"The Aleutian Low was {en['al'].p_anom:+.1f} hPa against normal in {en['al_t']:%B}, after running weak in "
+      f"August–September. The Gulf of Alaska ridge is the opposite of the deep Aleutian Low and West Coast trough "
+      f"of a canonical El Niño winter.\n"
+      f"- **The ocean resembles past strong El Niños; the atmosphere does not.** Against the mean of the strong El Niño years "
+      f"({', '.join(str(y) for y in en['strong'])}) for the same months, the September–October 2026 SST anomaly "
+      f"pattern over the North Pacific matches closely (pattern correlation {en['pc_sst']:+.2f}), but the 500-hPa "
+      f"height anomaly pattern does not ({en['pc_z']:+.2f}).\n"
+      f"- **El Niño and fall rain in the record.** August–October ONI correlates with Flagstaff September–November "
+      f"precipitation at r = {en['r']:+.2f} (p = {en['p']:.3f}, n = {en['n']}). In the {en['en_n']} falls with ONI "
+      f"≥ 1.0, {en['en_above']} were wetter than the median, and their median was {en['en_median']:.2f} in, against "
+      f"{en['median']:.2f} in for all falls since 1950.")
+print()
+c = en['conflict']
+print("The one earlier fall with a comparable mismatch (ONI ≥ 1.0 with a September–October PDO ≤ −1.0) is "
+      + '; '.join(f"{y} (ONI {v[0]:+.1f}, PDO {v[1]:+.1f})" for y, v in c.items())
+      + ". " + ' '.join(f"That fall was dry at Flagstaff ({v[2]:.2f} in), and the following November–March brought "
+                        f"{v[3]:.2f} in against a median of {en['winter_median']:.2f} in." for y, v in c.items()))
+```
+
+This fall's rain fits El Niño only indirectly. The warm eastern Pacific fed an active hurricane season (Odalys, Polo, Rachel, Trudy and Vance) and the record-warm water off Baja that supplied the moisture. The lift came from cut-off lows under a Gulf of Alaska ridge, not from the extended Pacific jet and deep Aleutian Low that El Niño usually brings in winter. The main question for the coming months is whether that winter response develops or the negative PDO keeps the ridge in place. One comparable year is little to go on: 2023 had the same mismatch, a dry fall and then a winter wetter than the median. The [Pacific page](../pacific.qmd) tracks this monthly.
+
+::: {.callout-note collapse="true"}
+## Notes and caveats (Part 2)
+
+- **Season to date:** the latest days of the airport record are provisional, and November is incomplete. The comparison with complete falls uses every year from 1899 with at least 90% of days reported.
+- **Cut-off lows:** a closed low is a 500-hPa height minimum over a 5° neighbourhood in 6-hourly ERA5 (0.25°), the same test used on the event pages. Shallow lows and open troughs are not counted.
+- **ENSO and PDO:** ONI and PNA from CPC; PDO from NCEI (ERSSTv5). Strong El Niño years are those with August–October ONI ≥ 1.5. Pattern correlations are over the Pacific page's North Pacific domain.
+- **Moisture sources:** taken from the forecasters' discussions, which are written in real time; the event pages compare them with ERA5 where it is available.
 :::

@@ -27,7 +27,8 @@ def fetch(start, end, overwrite=False):
     """Download all days in [start, end], one file pair per month (partial months are re-fetched)."""
     c = _client()
     days = pd.date_range(start, end, freq='D')
-    for (y, m), d in days.groupby([days.year, days.month]).items():
+    for y, m in sorted(set(zip(days.year, days.month))):
+        d = days[(days.year == y) & (days.month == m)]
         tag = f'{y}-{m:02d}_{d[0].day:02d}-{d[-1].day:02d}'
         req = dict(_COMMON, year=[str(y)], month=[f'{m:02d}'], day=[f'{x.day:02d}' for x in d])
         pl, sl = DIR / f'pl_{tag}.nc', DIR / f'sl_{tag}.nc'

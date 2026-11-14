@@ -49,3 +49,26 @@
   - utc: '202610221000'
     local: 'Oct 22, 3:00 AM MST'
     text: "This system is pulling a rich subtropical moisture plume into the state, yielding record amounts of atmospheric moisture for this time of year."
+2026-10-30:
+  - utc: '202610291636'
+    local: 'Oct 29, 9:36 AM MST'
+    text: "A deepening long-wave trough over much of the eastern Pacific will begin to draw sub-tropical moisture and remnant Monsoonal moisture northward by tonight. … By late Saturday evening, a significant tropical moisture plume originating around 24N will take aim at Arizona, as the now fully developed west coast trough starts to move inland."
+  - utc: '202610300519'
+    local: 'Oct 29, 10:19 PM MST'
+    text: "A shortwave over the Pacific will move northeastward across Arizona, drawing northward some deep moisture with precipitable water values close to the 99th percentile for late October."
+  - utc: '202610301707'
+    local: 'Oct 30, 10:07 AM MST'
+    text: "Moisture transport is underway, featuring a 20-30kt low-level jet pointed straight up the Gulf of California and into the Lower Colorado River Valley. This advection is due to a deepening trough along most of the west coast, as well as sub-tropical jet and s/wv now located around 29N/120W. … This air mass will be near records as far as PW is concerned for this time of year and the phasing of the two systems will allow for an extended period of moderate to heavy rainfall."
+  - utc: '202611011129'
+    local: 'Nov 1, 4:29 AM MST'
+    text: "A concerning hydrological threat will evolve across Northern Arizona over the next 24 hours with the arrival of an atmospheric river. … Hydrological issues will be enhanced due to the already very saturated soil conditions, and it will take less rainfall than usual to cause problems."
+  - utc: '202611021708'
+    local: 'Nov 2, 10:08 AM MST'
+    text: "Rain gauge and radar data suggest a widespread area 2 to 5 inches of rain (locally higher) has fallen since yesterday across and south of the Mogollon Rim, with some stream gauges exceeding record stage heights. … A record flood stage has been observed early this morning on the Little Colorado at Winslow, with the levee expected to be overtopped within the next several hours."
+2026-11-13:
+  - utc: '202611131105'
+    local: 'Nov 13, 4:05 AM MST'
+    text: "The area of high pressure that's been driving our warm/calm weather the last few days is finally pushing eastward, with dual low pressure systems following right behind."
+  - utc: '202611140532'
+    local: 'Nov 13, 10:32 PM MST'
+    text: "Clouds will be on the increase through the day as moisture begins to stream into the region from a weakening low over southern California. … QPF looks to be on the lighter side given a lack of any robust forcing."

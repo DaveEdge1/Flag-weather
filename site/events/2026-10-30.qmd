@@ -1,0 +1,105 @@
+---
+title: "October 30 – November 1, 2026"
+date: 2026-10-30
+description: "Network median 2.91 in (range 1.81–7.64 in); peak IVT 618 kg m⁻¹ s⁻¹ from the SSW; Vance within 1,500 km"
+categories: [IVT ≥ 250, Tropical cyclone nearby, Snow, Final]
+execute:
+  freeze: auto
+---
+
+```{python}
+import sys
+sys.path.insert(0, '../..')
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+from flagweather import page
+from flagweather.config import SNOTEL
+from flagweather.event import Event
+from flagweather.figures import events as figs
+from flagweather.sources import era5, snotel
+
+try:
+    ev = Event('2026-10-30T12', '2026-11-02T06', map_times=[]).load()
+    ok = True
+except Exception as err:   # a data source was unreachable at build time
+    ok = False
+    print(f'*Some data sources could not be reached when this page was built ({type(err).__name__}). '
+          'The page will be completed by the next scheduled build.*')
+```
+
+```{python}
+#| output: asis
+if ok:
+    print('## Summary\n')
+    print(page.narrative(ev))
+    print('\n## Rain across the network\n')
+```
+
+```{python}
+#| fig-cap: "Event rain total at each city and county gauge (circle area proportional to total, labels in inches) over shaded relief (USGS 3DEP), 200-m elevation contours, streams (USGS NHD) and highways (Census TIGER). Orange triangles: SNOTEL sites with event precipitation (in). Square: Flagstaff airport."
+if ok:
+    figs.gauge_map(ev.net, ev.totals, 'Event rain total (in)', snotel.stations(list(SNOTEL)), ev.snotel_stats().precip)
+    plt.show()
+```
+
+```{python}
+#| fig-cap: "Hourly and cumulative rain across the gauge network (median and 10th–90th percentile; cumulative from the start of the event window). When ERA5 is available: IVT, 250-hPa wind speed and 500-hPa height at the ERA5 grid point nearest Flagstaff. Times UTC."
+if ok and ev.final:
+    figs.network_timeseries(ev.hourly, ev.point.loc[ev.start - pd.Timedelta('1D'):ev.end + pd.Timedelta('1D')],
+                            start=ev.start, end=ev.end)
+    plt.show()
+elif ok:
+    figs.network_timeseries(ev.hourly, start=ev.start, end=ev.end)
+    plt.show()
+```
+
+```{python}
+#| output: asis
+if ok:
+    print(page.key_numbers(ev))
+```
+
+```{python}
+#| output: asis
+if ok and ev.final:
+    print('## Atmospheric setting\n')
+```
+
+```{python}
+#| output: asis
+if ok and ev.final:
+    from flagweather import animation
+    frames = animation.write_frames(ev, era5.land_sea_mask())
+    print(animation.player(frames, ev.era5_stats()['ivt_time'], 'player-2026-10-30'))
+    print('\n*ERA5 every 6 hours, from 12 h before to 12 h after the event window, opening at the time of peak IVT '
+          'at Flagstaff. Shading: integrated vapour transport (IVT); blue contour and arrows: IVT ≥ 250 kg m⁻¹ s⁻¹. '
+          'Black: 500-hPa height (60-m interval). Orange: 250-hPa wind 40, 55 and 70 m s⁻¹. ★ Flagstaff; '
+          '✕ NHC best-track position. Lower strip: network median hourly rain, with the event window shaded '
+          'and the map time marked in orange. Step with the buttons, slider or ← → keys; space plays and pauses.*\n')
+```
+
+```{python}
+#| output: asis
+notes = page.forecaster_notes('2026-10-30')
+if notes:
+    print('## What the forecasters said\n')
+    print(notes)
+```
+
+```{python}
+#| output: asis
+if ok:
+    print('## Climate context\n')
+    print(page.climate(ev))
+    print('\n## Station data\n')
+```
+
+```{python}
+#| output: asis
+if ok:
+    print('**Flagstaff airport** (local days; normals 1991–2020; M = not yet reported)\n')
+    print(page.station_table(ev))
+    print('\n\n**SNOTEL** (water-year precipitation from Oct 1; medians 1991–2020)\n')
+    print(page.snotel_table(ev))
+```
