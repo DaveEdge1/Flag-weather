@@ -40,7 +40,8 @@ format:
       dark: darkly
     toc: true
     fig-format: png
-    fig-dpi: 130
+    fig-dpi: 160
+    lightbox: auto
 
 execute:
   echo: false

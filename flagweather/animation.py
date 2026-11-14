@@ -25,7 +25,7 @@ def frame_times(ev):
 
 
 def _frame(ev, lsm, t, rain):
-    fig = plt.figure(figsize=(11, 9.6), facecolor=SURF, layout='constrained')
+    fig = plt.figure(figsize=(8, 7.4), facecolor=SURF, layout='constrained')
     gs = fig.add_gridspec(3, 1, height_ratios=[7.6, 1.35, 0.16])
     ax = fig.add_subplot(gs[0])
     pc = draw_map(ax, ev.era5, lsm, t, ev.best_track)
@@ -46,7 +46,7 @@ def _frame(ev, lsm, t, rain):
     return fig
 
 
-def write_frames(ev, lsm, dpi=90):
+def write_frames(ev, lsm, dpi=135):
     """Render frames for an event; returns list of (relative path, UTC time)."""
     out = FRAMES_DIR / ev.slug
     out.mkdir(parents=True, exist_ok=True)
@@ -72,7 +72,8 @@ def player(frames, start_time, uid):
     data = html.escape(json.dumps({'src': srcs, 'label': labels, 'start': start}))
     return f'''```{{=html}}
 <div class="fw-player" id="{uid}" data-frames="{data}" tabindex="0">
-  <img class="fw-img" alt="ERA5 atmospheric setting, animated" src="{srcs[start]}">
+  <a class="fw-link" href="{srcs[start]}" target="_blank" title="Open this frame full size">
+    <img class="fw-img" alt="ERA5 atmospheric setting, animated" src="{srcs[start]}"></a>
   <div class="fw-controls">
     <button type="button" data-act="first" title="First frame">⏮</button>
     <button type="button" data-act="prev" title="Previous 6 h (←)">◀ 6 h</button>

@@ -10,6 +10,10 @@
   .fw-controls .fw-play { min-width: 4.5rem; font-weight: 600; }
   .fw-slider { flex: 1 1 200px; min-width: 150px; }
   .fw-label { font-variant-numeric: tabular-nums; font-size: .9rem; min-width: 18rem; }
+  @media (max-width: 600px) {
+    .fw-label { min-width: 0; flex-basis: 100%; font-size: .85rem; }
+    .fw-controls button { padding: .35rem .55rem; }
+  }
 </style>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -17,12 +21,13 @@
       var d = JSON.parse(root.getAttribute('data-frames'));
       var img = root.querySelector('.fw-img'), slider = root.querySelector('.fw-slider'),
           label = root.querySelector('.fw-label'), speed = root.querySelector('.fw-speed'),
-          playBtn = root.querySelector('.fw-play');
+          playBtn = root.querySelector('.fw-play'), link = root.querySelector('.fw-link');
       var i = d.start, timer = null;
       d.src.forEach(function (s) { var im = new Image(); im.src = s; });   // preload
       function show(k) {
         i = (k + d.src.length) % d.src.length;
         img.src = d.src[i]; slider.value = i; label.textContent = d.label[i];
+        if (link) link.href = d.src[i];
       }
       function stop() { clearInterval(timer); timer = null; playBtn.textContent = 'Play'; }
       function play() {

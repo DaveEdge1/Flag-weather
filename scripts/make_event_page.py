@@ -91,7 +91,7 @@ if ok and ev.final:
           'at Flagstaff. Shading: integrated vapour transport (IVT); blue contour and arrows: IVT ≥ 250 kg m⁻¹ s⁻¹. '
           'Black: 500-hPa height (60-m interval). Orange: 250-hPa wind 40, 55 and 70 m s⁻¹. ★ Flagstaff; '
           '✕ NHC best-track position. Lower strip: network median hourly rain, with the event window shaded '
-          'and the map time marked in orange. Step with the buttons, slider or ← → keys; space plays and pauses.*\\n')
+          'and the map time marked in orange. Step with the buttons, slider or ← → keys; space plays and pauses. Tap or click the map to open the frame full size.*\\n')
 ```
 
 ```{{python}}

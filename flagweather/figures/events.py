@@ -21,23 +21,23 @@ def point_series(ds):
 def gauge_map(net, values, title, snotel_sites=None, snotel_values=None, unit='in'):
     """Gauges (circle area proportional to value) over shaded relief, streams and highways;
     SNOTEL triangles; airport square."""
-    fig, ax = plt.subplots(figsize=(10, 9), facecolor=SURF)
+    fig, ax = plt.subplots(figsize=(7, 6.3), facecolor=SURF)
     basemap.draw(ax)
     halo = [patheffects.withStroke(linewidth=2.2, foreground=SURF)]
     v = values.reindex(net.index)
-    scale = 700 / max(float(v.max()), 0.01)
+    scale = 350 / max(float(v.max()), 0.01)
     ax.scatter(net.lon, net.lat, s=v.fillna(0) * scale, color=BLUE, alpha=0.7, edgecolor=INK, lw=0.5, zorder=3)
     for gid, r in net.iterrows():
         if pd.notna(v[gid]):
-            ax.annotate(f'{v[gid]:.2f}', (r.lon, r.lat), fontsize=7, color=INK, ha='center', va='center', zorder=4,
+            ax.annotate(f'{v[gid]:.2f}', (r.lon, r.lat), fontsize=7.5, color=INK, ha='center', va='center', zorder=4,
                         path_effects=halo)
     if snotel_sites is not None:
-        ax.scatter(snotel_sites.lon, snotel_sites.lat, marker='^', s=110, color=ORANGE, edgecolor=INK, lw=0.7, zorder=4)
+        ax.scatter(snotel_sites.lon, snotel_sites.lat, marker='^', s=70, color=ORANGE, edgecolor=INK, lw=0.7, zorder=4)
         for t, r in snotel_sites.iterrows():
             lab = r['name'] if snotel_values is None or pd.isna(snotel_values.get(r['name']))                 else f"{r['name']} {snotel_values[r['name']]:.1f}"
             ax.annotate(lab, (r.lon, r.lat), xytext=(-8, 4), textcoords='offset points', fontsize=8.5, color=INK,
                         ha='right', zorder=4, path_effects=halo)
-    ax.scatter([-111.666], [35.144], marker='s', s=60, color=INK, zorder=4)
+    ax.scatter([-111.666], [35.144], marker='s', s=40, color=INK, zorder=4)
     ax.annotate('Airport', (-111.666, 35.144), xytext=(6, -10), textcoords='offset points', fontsize=8.5, color=INK,
                 zorder=4, path_effects=halo)
     ax.set_aspect(1 / np.cos(np.deg2rad(35.2)))
@@ -76,7 +76,7 @@ def network_timeseries(hourly, df=None, title=None, start=None, end=None):
     """Hourly and cumulative network rain (median and 10-90th percentile across gauges); with df (ERA5 point
     series), also IVT, 250-hPa wind and 500-hPa height at Flagstaff. Cumulative rain starts at `start`."""
     if df is None:
-        fig, axes = plt.subplots(2, 1, figsize=(11, 5.2), sharex=True, facecolor=SURF)
+        fig, axes = plt.subplots(2, 1, figsize=(8, 4.6), sharex=True, facecolor=SURF)
         h = hourly.loc[start:end]
         _rain_panel(axes[0], h)
         _cum_panel(axes[1], h)
@@ -86,7 +86,7 @@ def network_timeseries(hourly, df=None, title=None, start=None, end=None):
         axes[0].set_title(title or 'Gauge network rain (UTC)', loc='left', fontsize=11.5, color=INK)
         fig.tight_layout()
         return fig
-    fig, axes = plt.subplots(5, 1, figsize=(11, 10.5), sharex=True, facecolor=SURF,
+    fig, axes = plt.subplots(5, 1, figsize=(8, 9.5), sharex=True, facecolor=SURF,
                              gridspec_kw={'height_ratios': [1.2, 1, 1, 1, 1]})
     h = hourly.loc[df.index[0]:df.index[-1] + pd.Timedelta('6h')]
     _rain_panel(axes[0], h)
@@ -116,7 +116,7 @@ def draw_map(ax, ds, lsm, t, best_track=None):
     ax.contour(lon, lat, s.ivt, [AR_IVT], colors=BLUE, linewidths=1.2)
     ax.contour(lsm.longitude, lsm.latitude, lsm, [0.5], colors=MUTED, linewidths=0.6)
     cz = ax.contour(lon, lat, s.z500, np.arange(5100, 6000, 60), colors=INK, linewidths=0.6)
-    ax.clabel(cz, cz.levels[::2], fontsize=6.5, fmt='%d')
+    ax.clabel(cz, cz.levels[::2], fontsize=7.5, fmt='%d')
     ax.contour(lon, lat, s.ws250, [40, 55, 70], colors=ORANGE, linewidths=[0.9, 1.5, 2.2])
     q = s.isel(latitude=slice(None, None, 12), longitude=slice(None, None, 12))  # every 3 degrees
     m = q.ivt >= AR_IVT
