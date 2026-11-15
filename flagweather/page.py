@@ -199,16 +199,12 @@ def _streams(ev):
 
 
 def stream_sentences(ev):
-    """Summary sentences on stream peaks, only for gauges at or near their records."""
+    """Summary sentences on stream peaks, when gauges ran well above normal (see streams.sentences)."""
     from . import streams
     st = _streams(ev)
     if st is None:
         return []
-    near, flag, cty = st
-    near = near[near['rank'] <= 3]
-    flag = flag[flag['rank'] <= 3]
-    cty = cty[cty.last_higher.isna()] if len(cty) else cty
-    return streams.sentences(near, flag, cty)
+    return streams.sentences(*st, start=ev.start.tz_localize(None) if ev.start.tzinfo else ev.start)
 
 
 def streamflow(ev):
@@ -218,16 +214,30 @@ def streamflow(ev):
     if st is None:
         return '*Streamflow data could not be reached when this page was built.*'
     near, flag, cty = st
-    out = [f'Peak flow during the event (through two days after it, to let rivers crest) at USGS gauges within '
+    out = [f'Peak flow during the event at USGS gauges within '
            f'{streams.NEAR_KM * 0.621:.0f} miles of Flagstaff with at least {streams.MIN_YEARS} years of annual '
-           'peaks, ranked by where the peak falls in each gauge’s record. Event peaks are provisional real-time '
-           'data and may be revised; the record is the published annual-peak series.\n']
+           'peaks, ranked by where the peak falls in each gauge’s record. The typical yearly peak is the median '
+           'annual peak. The last column compares the highest daily mean flow during the event with the 90th '
+           'percentile of daily flow for that date (▲ = above it, i.e. well above normal for the time of year). '
+           'Event flows are provisional real-time data and may be revised; the record is the published '
+           'annual-peak series. Each gauge’s peak is taken from the start of the rain until the gauge has had time '
+           'to crest: one day after the rain ends for basins under 100 sq mi, two days under 2,000 sq mi, three '
+           'days under 6,000 sq mi (the Verde) and a week for the Little Colorado, but stopping once the next '
+           f'storm’s runoff could arrive (a day with {streams.NEXT_RAIN:.2f} in or more at the airport, plus a '
+           'third of the gauge’s crest time).\n']
+    above = near.above & near.dmax.notna()
+    if above.any():
+        n = int((near.dmax.notna() & (near.dyears >= streams.MIN_YEARS)).sum())
+        k = int(above.sum())
+        out.append(f'{"All" if k == n else f"{k} of the"} {n} gauges with long daily records ran above the 90th percentile '
+                   '(the table lists the most unusual peaks).\n')
     if len(near):
         out.append(streams.regional_table(near).to_markdown(index=False, disable_numparse=True))
     ft = streams.city_table(flag, cty)
     if len(ft):
         out.append('\n**Flagstaff.** USGS gauges within 20 miles of town, and the City of Flagstaff stream-stage '
-                   'sensors that rose at least half a foot. City sensors report water depth (ft), not flow, and '
+                   'sensors that rose at least half a foot, with peaks taken through 6 hours after the rain (these '
+                   'small basins crest within an hour or two). City sensors report water depth (ft), not flow, and '
                    'have records of only a few years. Their readings are screened for sensor glitches: a crest '
                    'counts only if the water passed through intermediate levels on the way up and down.\n')
         out.append(ft.to_markdown(index=False, disable_numparse=True))

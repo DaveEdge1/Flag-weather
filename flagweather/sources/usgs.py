@@ -39,23 +39,60 @@ def _km(lat, lon):
     return 2 * 6371 * np.arcsin(np.sqrt(a))
 
 
-def event_peaks(start, end, bbox=BBOX):
-    """Peak instantaneous discharge (cfs) at every gauge in bbox between start and end (dates, local)."""
+SITES = 'https://waterservices.usgs.gov/nwis/site/?format=rdb&bBox={bbox}&siteOutput=expanded&siteType=ST'         '&hasDataTypeCd=iv&parameterCd=00060'
+
+
+def drainage_areas(bbox=BBOX):
+    """Drainage area (sq mi) of each stream gauge in bbox, cached for 30 days."""
+    f = DIR / 'sites.rdb'
+    if not f.exists() or time.time() - f.stat().st_mtime > 30 * 86400:
+        f.write_text(_read(SITES.format(bbox=bbox)), encoding='utf-8')
+    lines = [ln for ln in f.read_text(encoding='utf-8').splitlines(True) if not ln.startswith('#')]
+    df = pd.read_csv(io.StringIO(''.join(lines[:1] + lines[2:])), sep='	', dtype=str)
+    return pd.to_numeric(df.set_index('site_no').drain_area_va, errors='coerce')
+
+
+def instantaneous(start, end, bbox=BBOX):
+    """Instantaneous discharge (cfs; provisional) at every gauge in bbox between start and end (dates, local):
+    {site: series with local-time index}, plus a DataFrame of name, lat, lon, km from Flagstaff."""
     d = json.loads(_read(IV.format(bbox=bbox, start=start, end=end)))
-    rows = []
+    series, meta = {}, []
     for ts in d['value']['timeSeries']:
         si = ts['sourceInfo']
-        v = [(x['dateTime'], float(x['value'])) for x in ts['values'][0]['value'] if float(x['value']) > -999]
+        v = {pd.Timestamp(x['dateTime']): float(x['value']) for x in ts['values'][0]['value']
+             if float(x['value']) > -999}
         if not v:
             continue
-        t, q = max(v, key=lambda x: x[1])
+        site = si['siteCode'][0]['value']
+        s = pd.Series(v)
+        s.index = pd.DatetimeIndex(s.index).tz_convert('America/Phoenix').tz_localize(None)
+        series[site] = s.sort_index()
         g = si['geoLocation']['geogLocation']
-        rows.append(dict(site=si['siteCode'][0]['value'], name=si['siteName'], peak=q,
-                         time=pd.Timestamp(t).tz_convert('America/Phoenix').tz_localize(None),
-                         lat=g['latitude'], lon=g['longitude']))
-    df = pd.DataFrame(rows).set_index('site')
-    df['km'] = _km(df.lat, df.lon)
-    return df
+        meta.append(dict(site=site, name=si['siteName'], lat=g['latitude'], lon=g['longitude']))
+    meta = pd.DataFrame(meta).set_index('site')
+    meta['km'] = _km(meta.lat, meta.lon)
+    return series, meta
+
+
+def event_peaks(start, ends, bbox=BBOX):
+    """Peak instantaneous discharge (cfs) at every gauge in bbox from start (local) to that gauge's end time
+    (ends: function site -> local Timestamp), with its time, the window end and the distance from Flagstaff."""
+    last = max(ends(None), start) + pd.Timedelta('1D')
+    series, meta = instantaneous(f'{start:%Y-%m-%d}', f'{last:%Y-%m-%d}', bbox)
+    rows = []
+    cap = getattr(ends, 'cap', None)
+    for site, s in series.items():
+        end = ends(site)
+        if cap is not None and end > cap:
+            # after the next storm starts, stop at the low point before the river rises again
+            tail = s[cap:end]
+            if len(tail) and tail[tail.idxmin():].max() > 1.25 * max(tail.min(), 1):
+                end = tail.idxmin()
+        w = s[start:end]
+        if w.empty:
+            continue
+        rows.append(dict(site=site, peak=w.max(), time=w.idxmax(), window_end=end))
+    return meta.join(pd.DataFrame(rows).set_index('site'), how='inner')
 
 
 def annual_peaks(site):
@@ -73,10 +110,73 @@ def annual_peaks(site):
     return pk.set_index('dt').q.sort_index()
 
 
-def ranked(start, end, before):
-    """Event peaks with their standing in the annual-peak record before `before` (the event's water year):
-    rank, years of record, previous record and its date, and the ratio to the median annual peak."""
-    ev = event_peaks(start, end)
+DV = 'https://waterservices.usgs.gov/nwis/dv/?format=json&bBox={bbox}&parameterCd=00060&statCd=00003' \
+     '&startDT={start}&endDT={end}&siteStatus=all'
+STAT = 'https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites={site}&statReportType=daily&statTypeCd=all' \
+       '&parameterCd=00060'
+PCTS = ['p05', 'p10', 'p20', 'p25', 'p50', 'p75', 'p80', 'p90', 'p95']
+
+
+def daily_means(start, end, bbox=BBOX):
+    """Daily mean discharge (cfs; provisional) at every gauge in bbox, as a DataFrame (date x site)."""
+    d = json.loads(_read(DV.format(bbox=bbox, start=start, end=end)))
+    cols = {}
+    for ts in d['value']['timeSeries']:
+        v = {pd.Timestamp(x['dateTime'][:10]): float(x['value']) for x in ts['values'][0]['value']
+             if float(x['value']) > -999}
+        if v:
+            cols[ts['sourceInfo']['siteCode'][0]['value']] = pd.Series(v)
+    return pd.DataFrame(cols)
+
+
+def daily_stats(site):
+    """Day-of-year statistics of daily mean discharge (approved record), cached: index (month, day);
+    columns count, max, max_yr and the percentiles in PCTS."""
+    f = DIR / f'stat_{site}.txt'
+    if not f.exists() or time.time() - f.stat().st_mtime > 30 * 86400:
+        try:
+            f.write_text(_read(STAT.format(site=site)), encoding='utf-8')
+        except Exception:     # the service answers 404 for gauges without statistics
+            f.write_text('', encoding='utf-8')
+    lines = [ln for ln in f.read_text(encoding='utf-8').splitlines(True) if not ln.startswith('#')]
+    if len(lines) < 3:
+        return pd.DataFrame()
+    df = pd.read_csv(io.StringIO(''.join(lines[:1] + lines[2:])), sep='\t', dtype=str)
+    df = df[df.parameter_cd == '00060']
+    out = pd.DataFrame({'count': pd.to_numeric(df.count_nu), 'max': pd.to_numeric(df.max_va, errors='coerce'),
+                        'max_yr': pd.to_numeric(df.max_va_yr, errors='coerce')})
+    for p in PCTS:
+        out[p] = pd.to_numeric(df[f'{p}_va'], errors='coerce')
+    out.index = pd.MultiIndex.from_arrays([df.month_nu.astype(int), df.day_nu.astype(int)])
+    return out[~out.index.duplicated()]    # one time series per gauge (the first listed)
+
+
+def vs_normal(start, ends, sites):
+    """Highest daily mean flow from start to each site's end (local dates) against the statistics for that day of
+    the year: dmax, its date, the median (p50), 90th and 95th percentiles for the date, years of daily record,
+    and the highest daily mean for the date with its year."""
+    dm = daily_means(f'{start:%Y-%m-%d}', f'{max(ends(None), start):%Y-%m-%d}')
+    rows = []
+    for site in sites:
+        if site not in dm or dm[site].dropna().empty:
+            continue
+        st = daily_stats(site)
+        s = dm[site][start.normalize():ends(site)].dropna()
+        if s.empty:
+            continue
+        day = s.idxmax()
+        if st.empty or (day.month, day.day) not in st.index:
+            continue
+        r = st.loc[(day.month, day.day)]
+        rows.append(dict(site=site, dmax=s.max(), dday=day, p50=r.p50, p90=r.p90, p95=r.p95, dyears=int(r['count']),
+                         day_max=r['max'], day_max_yr=r.max_yr))
+    return pd.DataFrame(rows).set_index('site') if rows else pd.DataFrame()
+
+
+def ranked(start, ends, before):
+    """Event peaks (see event_peaks) with their standing in the annual-peak record before `before` (the event's
+    water year): rank, years of record, previous record and its date, and the ratio to the median annual peak."""
+    ev = event_peaks(start, ends)
     rows = []
     for site, r in ev.iterrows():
         pk = annual_peaks(site)
