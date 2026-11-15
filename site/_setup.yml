@@ -1,0 +1,20 @@
+# Hand-written plain-language lead-ins for event summaries, keyed by event page slug.
+# setup:   how the storm came together (pattern, moisture source, delivery), from the NWS Flagstaff Area Forecast
+#          Discussions and checked against ERA5; claims ERA5 cannot check are attributed to the forecasters.
+# impacts: what the storm did, attributed to its source.
+# Both are inserted verbatim (Markdown) by flagweather.page.summary().
+'2026-10-30':
+  setup: >-
+    In the last days of October a large dip in the jet stream (a trough) deepened over the eastern Pacific, anchored
+    by a low off the Pacific Northwest. Southerly winds ahead of it began drawing subtropical moisture, along with
+    leftover monsoon moisture, north out of Mexico on October 29. By October 30, NWS Flagstaff forecasters described
+    a 20–30 knot low-level wind blowing straight up the Gulf of California, and air holding close to record moisture
+    for the time of year. A smaller disturbance off Baja California was merging with the trough, which they expected
+    to prolong the rain. A first, light round reached Flagstaff on the afternoon of October 30. The main surge came as
+    the low dropped south toward northern California: early on November 1 the moisture organized into an atmospheric
+    river stretching back to the tropics off western Mexico and aimed at northern Arizona. It arrived on ground
+    already soaked by October's storms.
+  impacts: >-
+    By the morning of November 2, NWS Flagstaff reported 2 to 5 inches of rain, locally more, across and south of the
+    Mogollon Rim, with some stream gauges above their record heights. The Little Colorado River at Winslow reached a
+    record flood stage, and forecasters expected its levee to be overtopped within hours.

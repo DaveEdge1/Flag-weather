@@ -77,6 +77,13 @@ if ok:
 
 ```{{python}}
 #| output: asis
+if ok:
+    print('## Streams\\n')
+    print(page.streamflow(ev))
+```
+
+```{{python}}
+#| output: asis
 if ok and ev.final:
     print('## Atmospheric setting\\n')
 ```

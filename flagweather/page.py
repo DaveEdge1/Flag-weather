@@ -170,14 +170,121 @@ def plain_summary(ev):
     elif a['tmax_dep'] <= -5:
         out.append(f'Days were cool, about {-a["tmax_dep"]:.0f} °F below normal.')
 
+    lead = setup_text(ev.slug)
+    cause = []
     st = ev.atmos_setting()
     if st is None:
         for _, r in ev.tropical_cyclones().iterrows():
-            out.append(f'{_tc_name(r.type, r["name"])[0].upper()}{_tc_name(r.type, r["name"])[1:]} was about '
-                       f'{_mi(r.km)} miles away at its closest.')
-        out.append('Weather maps of what caused the storm will be added once the ERA5 reanalysis covers it, '
-                   'usually about a week afterwards.')
-        return ' '.join(out)
+            cause.append(f'{_tc_name(r.type, r["name"])[0].upper()}{_tc_name(r.type, r["name"])[1:]} was about '
+                         f'{_mi(r.km)} miles away at its closest.')
+        cause.append('Weather maps of what caused the storm will be added once the ERA5 reanalysis covers it, '
+                     'usually about a week afterwards.')
+    elif lead.get('setup'):
+        cause = _cause_short(ev, st)
+    else:
+        cause = _cause_full(ev, st)
+    return _paragraphs(lead, out, cause, stream_sentences(ev))
+
+
+def _streams(ev):
+    """Regional USGS peaks and city stage peaks for the event (computed once per event), or None if unavailable."""
+    if not hasattr(ev, '_streams'):
+        from . import streams
+        try:
+            near, flag = streams.regional(ev)
+            ev._streams = (near, flag, streams.city(ev))
+        except Exception:   # a data service was unreachable at build time
+            ev._streams = None
+    return ev._streams
+
+
+def stream_sentences(ev):
+    """Summary sentences on stream peaks, only for gauges at or near their records."""
+    from . import streams
+    st = _streams(ev)
+    if st is None:
+        return []
+    near, flag, cty = st
+    near = near[near['rank'] <= 3]
+    flag = flag[flag['rank'] <= 3]
+    cty = cty[cty.last_higher.isna()] if len(cty) else cty
+    return streams.sentences(near, flag, cty)
+
+
+def streamflow(ev):
+    """Markdown section: regional USGS gauges ranked by how unusual their peak was, then Flagstaff gauges."""
+    from . import streams
+    st = _streams(ev)
+    if st is None:
+        return '*Streamflow data could not be reached when this page was built.*'
+    near, flag, cty = st
+    out = [f'Peak flow during the event (through two days after it, to let rivers crest) at USGS gauges within '
+           f'{streams.NEAR_KM * 0.621:.0f} miles of Flagstaff with at least {streams.MIN_YEARS} years of annual '
+           'peaks, ranked by where the peak falls in each gauge’s record. Event peaks are provisional real-time '
+           'data and may be revised; the record is the published annual-peak series.\n']
+    if len(near):
+        out.append(streams.regional_table(near).to_markdown(index=False, disable_numparse=True))
+    ft = streams.city_table(flag, cty)
+    if len(ft):
+        out.append('\n**Flagstaff.** USGS gauges within 20 miles of town, and the City of Flagstaff stream-stage '
+                   'sensors that rose at least half a foot. City sensors report water depth (ft), not flow, and '
+                   'have records of only a few years. Their readings are screened for sensor glitches: a crest '
+                   'counts only if the water passed through intermediate levels on the way up and down.\n')
+        out.append(ft.to_markdown(index=False, disable_numparse=True))
+    return '\n'.join(out)
+
+
+def setup_text(slug):
+    """Hand-written setup and impacts text for an event (site/_setup.yml), or {}."""
+    import yaml
+    if not SETUP_FILE.exists():
+        return {}
+    q = {str(k): v for k, v in (yaml.safe_load(SETUP_FILE.read_text(encoding='utf-8')) or {}).items()}
+    return q.get(slug) or {}
+
+
+def _paragraphs(lead, rain, cause, streams=()):
+    paras = []
+    if lead.get('setup'):
+        paras.append('**How it came together.** ' + lead['setup'].strip())
+        paras.append('**What fell.** ' + ' '.join(rain))
+    else:
+        paras.append(' '.join(rain))
+    tail = ' '.join(cause)
+    impacts = ' '.join(([lead['impacts'].strip()] if lead.get('impacts') else []) + list(streams))
+    if lead.get('setup'):
+        if tail:
+            paras.append('**Why so much.** ' + tail)
+        if impacts:
+            paras.append('**What it did.** ' + impacts)
+    elif tail or impacts:
+        paras.append(' '.join(x for x in (tail, impacts) if x))
+    return '\n\n'.join(paras)
+
+
+def _cause_short(ev, st):
+    """ERA5 diagnosis condensed for summaries that already have a written setup."""
+    e = ev.era5_stats()
+    out = []
+    if e['ivt_max'] >= AR_IVT and st['frac_ar'] >= 0.5:
+        s = (f'The atmospheric river drove the storm: {100 * st["frac_ar"]:.0f}% of the rain fell while it was '
+             'overhead')
+        s += (f', and at its peak it carried about {e["ivt_max"] / AR_IVT:.1f} times the moisture flow that defines '
+              'one.' if e['ivt_max'] >= 2 * AR_IVT else '.')
+        out.append(s)
+    elif e['ivt_max'] >= AR_IVT:
+        out.append(f'The flow of moisture reached atmospheric-river strength for part of the storm, but '
+                   f'{100 * (1 - st["frac_ar"]):.0f}% of the rain fell outside those hours.')
+    else:
+        out.append('The flow of moisture stayed below atmospheric-river strength throughout.')
+    for c in st['tc_connected']:
+        out.append(f'Part of that moisture came directly from {_tc_name(c["type"], c["name"])}, '
+                   f'about {_mi(c["km"])} miles to the {_dir_words(c["bearing"])}.')
+    return out
+
+
+def _cause_full(ev, st):
+    out = []
     e = ev.era5_stats()
     cl = st['closed_low']
     steer = (f'an area of low pressure aloft centred about {_mi(cl["km"])} miles to the {_dir_words(cl["bearing"])}'
@@ -201,7 +308,7 @@ def plain_summary(ev):
     for c in st['tc_connected']:
         out.append(f'Part of that moisture came directly from {_tc_name(c["type"], c["name"])}, '
                    f'about {_mi(c["km"])} miles to the {_dir_words(c["bearing"])}.')
-    return ' '.join(out)
+    return out
 
 
 def summary(ev):
@@ -291,6 +398,7 @@ def snotel_table(ev):
 
 
 AFD_FILE = ROOT / 'site' / '_afd_quotes.yml'
+SETUP_FILE = ROOT / 'site' / '_setup.yml'
 AFD_URL = 'https://mesonet.agron.iastate.edu/wx/afos/p.php?pil=AFDFGZ&e={utc}'
 
 
